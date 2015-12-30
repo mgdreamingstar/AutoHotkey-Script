@@ -1,0 +1,389 @@
+﻿#Include %A_LineFile%\..\Library\WinClipAPI.ahk
+#Include %A_LineFile%\..\Library\WinClip.ahk
+
+SetTitleMatchMode Regex	;更改进程匹配模式为正则
+#SingleInstance ignore
+#MaxThreadsPerHotkey 5
+;SetCapsLockState,AlwaysOff
+CountStp := 0	;一键多用的计时器
+
+Menu, Tray, Icon, %A_LineFile%\..\icon\自定义快捷操作.ico, , 1
+Menu, tray, tip, 自定义快捷键
+
+;-------------------------------------------------------------------------------
+;~ 函数部分
+;-------------------------------------------------------------------------------
+{
+	;evernote编辑器增强函数
+	evernoteEdit(eFoward, eEnd)
+	{
+		;BlockInput On
+		clipboard =
+		Send ^c
+		ClipWait, ,
+		t := WinClip.GetHTML()
+		RegExMatch(t, "s)(?<=StartFragment-->)(.*?)(?=<!--EndFragment)", t)
+		MsgBox, % t
+		;pause
+		html = %eFoward%%t%%eEnd%
+		WinClip.Clear()
+		MsgBox, % html
+		;pause
+		WinClip.SetHTML(html)
+		;pause
+		Sleep, 300
+		Send ^v
+		;BlockInput Off
+		Return
+	}
+	
+	;Returns the path of the specified Explorer window, or the path of the active Explorer window if
+	;a title is not specified. Works with Explorer windows, desktop and some open/save dialogues.
+	;Returns empty path if no path is retrieved.
+	ActiveFolderPath(WinTitle="A")
+	{
+		WinGetClass Class, %WinTitle%
+		If (Class ~= "Progman|WorkerW") ;desktop
+			WinPath := A_Desktop
+		;Else If (Class ~= "(Cabinet|Explore)WClass") ;all other Explorer windows
+		Else ;all other windows
+		{
+			WinGetText, WinPath, A
+			RegExMatch(WinPath, "地址:.*", WinPath)
+			WinPath := RegExReplace(WinPath, "地址: ") ;remove "Address: " part
+		}
+
+		WinPath := RegExReplace(WinPath, "\\+$") ;remove single or double  trailing backslash
+		If WinPath ;if path not empty, append single backslash
+			WinPath .= "\"
+		Return WinPath
+	}
+}
+
+;-------------------------------------------------------------------------------
+;~ 全局键位
+;-------------------------------------------------------------------------------
+{
+	~LButton & s::Suspend
+	~LButton & r::Reload
+	~LButton & p::Pause
+
+	;双击esc退出焦点程序
+	~Esc::
+	{
+		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500)
+			Send, !{F4}
+		return
+	}
+
+	;常用软件快速启动
+	{
+		#c::Run cmd
+		#t::Run tc
+		#f::Run ff
+		#n::Run notepad
+		#z::Run scite
+		#x::Run xls
+		#e::Run en
+		#y::Run yd
+		#s::
+			Run sx
+			Run pp
+			return
+	}
+
+	;配合snagit，单击prtsc截屏；双击prtsc5秒延迟截屏
+	{
+		$PrintScreen::
+			CountStp := ++CountStp
+			SetTimer, TimerPrtSc, 500
+			Return
+		TimerPrtSc:
+			if CountStp > 1 ;大于1时关闭计时器
+				SetTimer, TimerPrtSc, Off
+			if CountStp = 1 ;只按一次时执行
+				Send, {PrintScreen}
+			if CountStp = 2 ;按两次时...
+				Send, ^+!{PrintScreen}
+			CountStp := 0 ;最后把记录的变量设置为0,于下次记录.
+			Return
+	}
+
+
+	;恢复Tab键原本功能
+	$Tab::Send, {Tab}
+	LAlt & Tab::AltTab
+	^Tab::Send, ^{Tab}
+	^+Tab::Send, ^+{Tab}
+
+	;配合有道词典取词
+	~LWin:: Send, {LControl}{LControl}	
+	
+	;豆瓣搜索
+	CapsLock & d::
+	{
+		Send, ^c
+		ClipWait  ; 等待剪贴板中出现文本.
+		clipboard = %clipboard%
+		Run, http://book.douban.com/subject_search?search_text=%clipboard%&cat=1001
+		return
+	}
+	
+	;谷歌搜索
+	CapsLock & g::
+	{
+		Send, ^c
+		ClipWait  ; 等待剪贴板中出现文本.
+		clipboard = %clipboard%
+		Run, https://www.google.com/search?newwindow=1&site=&source=hp&q=%clipboard%&=&=&oq=&gs_l=
+		return
+	}
+	
+	;evernote新建笔记
+	CapsLock & a::Send, ^!n
+
+	;快捷输入
+	{
+		::b\::bootislands
+		:*:b@\::{shift}bootislands@163.com	;按@时触发了shift造成中英切换，加个shift再切回来
+		:*:bg\::bootislands@gmail.com
+		:*:q@\::{shift}1755381995@qq.com
+		:*:ysj\::▶{Space}					;	右三角
+		:*:yjt\::⇒{Space}					;	右箭头
+		:*:yd\::•{Space}					;	圆点
+	}
+}
+
+;-------------------------------------------------------------------------------
+;~ Evernote快捷键
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_class (ENSingleNoteView|ENMainFrame)
+{	
+	F3::Send, ^!t									;批量打标签
+	CapsLock & s::Send, ^;							;快速插入日期时间
+	
+	;复制到当前笔记本
+	F5::
+	{
+		Send, {AppsKey}c
+		Sleep, 100
+		Send, {Enter}
+		return
+	}
+	
+	;导出笔记
+	F6::
+	{
+		Send, {AppsKey}x{Enter}
+		Sleep, 100
+		Send, {Enter}
+		return
+	}
+	
+	;加括号
+	Tab & a::
+	{
+		Send, ^x
+		Send, (%Clipboard%)
+		return
+	}
+	
+	;字体红色
+	#1::evernoteEdit("<div style='color: #F02E37;'><b>", "</b></div>")
+	;字体绿色
+	#2::evernoteEdit("<div style='color: #0F820F;'>", "</div>")
+	;字体灰色
+	#3::evernoteEdit("<div style='color: #D6D6D6;'>", "</div>")
+	;字体蓝色
+	#4::evernoteEdit("<div style='color: #3740E6;'>", "</div>")
+	;背景色黄色
+	!1::evernoteEdit("<div style='background: #FFFAA5;'>", "</div>")
+	;背景色橙色
+	!2::evernoteEdit("<div style='background: #FFD796;'>", "</div>")		;不要蓝色#ADD8E6
+	;背景色灰色
+	!3::evernoteEdit("<div style='background: #D3D3D3;'>", "</div>")
+	;背景色粉色
+	!4::evernoteEdit("<div style='background: #FFCDD8;'>", "</div>")
+	;方框环绕
+	!f::evernoteEdit("<div style='margin-top: 0px; margin-bottom: 9px; word-wrap: break-word; padding: 8.5px; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: rgb(245, 245, 245); border: 1px solid rgba(0, 0, 0, 0.148438)'>", "</div>")
+	;超级标题
+	!t::evernoteEdit("<div style='color:rgb(255, 255, 255);background-color:rgb(157, 187, 97);'>", "</div>")
+	/* 需要其它样式，在这里增加 
+	*/
+}
+
+;-------------------------------------------------------------------------------
+;~ Explorer快捷键
+;-------------------------------------------------------------------------------
+#IfWinActive, ahk_class (Progman|WorkerW|CabinetWClass|ExploreWClass|#32770|CabinetWClass|Clover_WidgetWin_0)
+{
+	;复制路径
+	^1::	clipboard := ActiveFolderPath("")
+
+	;复制文件名
+	^2::	
+	{
+		send ^c
+		sleep,200
+		clipboard = %clipboard%
+		SplitPath, clipboard, name
+		clipboard = %name%
+		return
+	}
+
+	;复制含文件名的完整路径
+	^3::	
+	{
+		send ^c
+		sleep,200
+		clipboard = %clipboard%
+		return
+	}
+	
+	;tc中打开同路径目录
+	^Up::
+	{
+		clipboard =
+		clipboard := ActiveFolderPath("")
+		ClipWait, ,
+		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /L="%Clipboard%"
+		return
+	}
+	
+	;tc中打开沙盘中的同路径
+	^Down::
+	{
+		clipboard =
+		clipboard := ActiveFolderPath("")
+		ClipWait, ,
+		StringReplace, clipboard, clipboard, :
+		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /L="d:\TechnicalSupport\Sandbox\LiLong\UnstableSoftware\drive\%Clipboard%"
+		return
+	}
+}
+
+;-------------------------------------------------------------------------------
+;~ Anki快捷键
+;-------------------------------------------------------------------------------
+#IfWinActive, ahk_class QWidget
+{
+	;新建cloze
+	F1::
+		Send, ^+c
+		return
+	
+	;新建cloze，序号不增加
+	F2::
+		Send, ^+!c
+		return
+	
+	;增量阅读，把透析的快捷键，改变成`
+	`::
+		Send, ^+!q
+		return
+		
+	;增量阅读，添加为析取qa后，自动关闭，方便下一次析取
+	^Enter::
+		Send, ^{Enter}
+		sleep, 300
+		Send, {Esc}
+		return
+}
+
+;-------------------------------------------------------------------------------
+;~ Firefox快捷键
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_class MozillaWindowClass
+{
+	F1::Send, ^+{Tab}	;切换到前一标签
+	F2::Send, ^{Tab}	;切换到后一标签
+	$`::Send, ^w	;关闭当前标签
+	` & 1::Send, ^+t
+	~^`::Send, ^`
+	F3::Send, ^!b	;配合diigo的侧边栏
+	
+	;还没想好怎么做
+	;自动判断是否选中文本，否的话，替换复制为全选+复制
+	;^c::
+	;	ControlGet,text,selected,,edit1 ;获取选中的文本
+	;	if text=
+	;		
+	;	return 
+}
+
+;-------------------------------------------------------------------------------
+;~ cmd快捷键
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_class ConsoleWindowClass
+{
+	~Esc::
+	{
+		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500)
+		{
+			WinClose A ;这里的大写字母A已经表示了当前激活的窗口,不必更改!
+		}
+		return
+	}
+}
+
+;-------------------------------------------------------------------------------
+;~ M$ Word快捷键
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_class OpusApp
+{
+	;导航窗格的开关，需要先在word里将导航窗格的快捷键指定为^!+p
+	F1::
+	{
+		Send, ^!+p
+		return
+	}
+	
+	`::
+		Send, ^!m
+		return
+}
+
+;-------------------------------------------------------------------------------
+;~ MLO快捷键
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_class TfrmMyLifeMain
+{
+	;mlo的备注不支持中文路径的超链接，因此加这个脚本
+	F1::
+	{
+		Send ^c
+		Run %clipboard%
+		Return
+	}
+}
+
+;-------------------------------------------------------------------------------
+;~ totalcmd快捷键
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_class TTOTAL_CMD
+{
+	;关闭当前标签
+	`::Send, ^w
+
+	;在win7自带资源管理器中打开同路径
+	^Up::
+		Send, ^1
+		Run, %Clipboard%
+		return
+	
+	;在对侧窗口打开沙盘中同路径
+	^Down::
+		Send, ^1
+		StringReplace, clipboard, clipboard, :
+		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /S /R="d:\TechnicalSupport\Sandbox\LiLong\UnstableSoftware\drive\%Clipboard%"
+		return
+}
+
+
+
+
+
+
+
+
+
