@@ -1,5 +1,18 @@
 ﻿;该脚本必须以ANSI运行
 
+;控制当前运行是ANSI版,若不是则切换
+SplitPath A_AhkPath,, AhkDir
+If (A_PtrSize = 8 || A_IsUnicode) {			;如果是64位程序,或是Unicode版，则进入切换版本的该循环
+    A32 := AhkDir . "\AutoHotkeyA32.exe"	;U32的路径
+    If (FileExist(A32)) {
+        Run %A32% %A_LineFile%				;如果存在,用U32再运行当前脚本
+        ExitApp								;退出当前这个实例
+    } Else {
+        MsgBox 0x2010, AutoGUI, AutoHotkey 32-bit ANSI not found.	;如果不存在,报错
+        ExitApp
+    }
+}
+
 urlencode(string){
 ;string := Ansi2UTF8(string) ;需要GB2312注释这行
 StringLen, len, string

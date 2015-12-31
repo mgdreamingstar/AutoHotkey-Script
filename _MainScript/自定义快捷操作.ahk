@@ -652,18 +652,38 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 {
 	;acrobat dc中划词取词失效，改用剪贴板取词
 	~LWin:: 
-	Send, ^c
-	timeNow:=A_TickCount
-	while(A_TickCount - timeNow < 500) 			;等1秒钟，
-	{
-		IfWinExist, ahk_class #32770				;期间出现ahk_class #32770的弹窗
+		Send, ^c
+		timeNow:=A_TickCount
+		while(A_TickCount - timeNow < 500) 				;等1秒钟，
 		{
-			;WinActivate  ; 自动使用上面找到的窗口.
-			Send, {Space}
-			return
+			IfWinExist, ahk_class #32770				;期间出现ahk_class #32770的弹窗
+			{
+				;WinActivate  ; 自动使用上面找到的窗口.
+				Send, {Space}
+				return
+			}
 		}
+		return
+	
+	;修改批注颜色 公用代码函数
+	changebg(r, g, b)
+	{
+		SendInput {RButton}H{RButton}P{Enter}{Down}{Down}{Down}{Down}{Down}{Down}{Enter}
+		Sleep, 500
+		SendInput {Tab}{Tab}{Tab}{Tab}{Tab}{Tab}{Tab}%r%{Tab}%g%{Tab}%b%{Enter}{Tab}{Tab}{Tab}{Tab}{Tab}{Enter}
+		return
 	}
-	return
+	;批注颜色list
+	!1::changebg(157, 205, 120)				;绿		#9DCD78，重点
+	!2::changebg(135, 201, 217)				;蓝		#87C9D9，
+	!3::changebg(241, 202, 93)				;橙		#F1CA5D，
+	!4::changebg(255, 138, 128)				;暖红	#FF8A80，
+	!5::changebg(185, 192, 199)				;灰		#B9C0C7，最不重要，说明
+	;!`::changebg(255, 255, 115)			;黄		#FFFF73，普通批注，acrobat默认，不必设快捷键
+	;按住右键，点左键，则普通批注
+	MButton::SendInput, {AppsKey}H
+	;备用色
+	;!1::changebg(205, 164, 133)				;驼色#CDA485，
 	
 	;双击鼠标左键，自动取词
 	/*$RButton::
@@ -705,6 +725,21 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		Send, ^c
 		ClipWait  ; 等待剪贴板中出现文本.
 		clipboard = http://zh.wikipedia.org/w/index.php?search=%clipboard%
+		WinActivate, ahk_exe firefox.exe
+		SendInput, ^t
+		Sleep, 1
+		SendInput, ^v{Enter}
+		return
+	}
+	
+	Numpad0 & q::
+	{
+		clipboard = 
+		Send, ^c
+		ClipWait  ; 等待剪贴板中出现文本.
+		;str := urlencode(clipboard)
+		;clipboard = http://book.szdnet.org.cn/search?Field=all&channel=search&sw=%str%
+		clipboard = http://book.szdnet.org.cn/search?Field=all&channel=search&sw=%clipboard%
 		WinActivate, ahk_exe firefox.exe
 		SendInput, ^t
 		Sleep, 1
