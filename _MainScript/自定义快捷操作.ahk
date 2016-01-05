@@ -144,7 +144,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		#r::SendInput, ^!+r
 		#c::Run "d:\TechnicalSupport\ProgramFiles\babun-1.2.0\.babun\babun.bat"
 		;注意主profile不要加--no-remote，否则evernote等打开链接时，会报错「已经运行，没有响应」云云。这里不必装安装版
-		#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\NewUseFirefox\firefox\firefox.exe"
+		#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\UseFirefox\firefox\firefox.exe"
 		#d::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\DevFirefox\pcxfirefox\firefox.exe" --no-remote
 		;#g::Run "d:\TechnicalSupport\ProgramFiles\GoogleChrome 便携版\MyChrome for Use\MyChrome.exe"
 		#g::Run "d:\TechnicalSupport\ProgramFiles\GoogleChrome 便携版\MyChrome for Dev\MyChrome.exe"
@@ -162,7 +162,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 			Run pp
 			return
 		;录制gif
-		Tab & g::
+		#!s::
 			Run "d:\BaiduYun\Technical Backup\ProgramFiles\keycastow 显示击键按键，录制屏幕时很有用\keycastow.exe"
 			Run "d:\BaiduYun\Technical Backup\ProgramFiles\#Repository\ScreenToGif 1.4.1 屏幕录制gif\$$ScreenToGif - Preview 9 屏幕录制gif.exe"
 			return
@@ -280,7 +280,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	}
 	
 	;配合有道词典取词
-	~LWin:: Send, {LControl}{LControl}	
+	~LWin:: Send, {LControl}{LControl}
 	
 	;豆瓣搜索
 	Numpad0 & d::
@@ -652,6 +652,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 {
 	;acrobat dc中划词取词失效，改用剪贴板取词
 	~LWin:: 
+	{
 		Send, ^c
 		timeNow:=A_TickCount
 		while(A_TickCount - timeNow < 500) 				;等1秒钟，
@@ -664,12 +665,13 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 			}
 		}
 		return
+	}
 	
 	;修改批注颜色 公用代码函数
 	changebg(r, g, b)
 	{
 		SendInput {RButton}H{RButton}P{Enter}{Down}{Down}{Down}{Down}{Down}{Down}{Enter}
-		Sleep, 500
+		Sleep, 600
 		SendInput {Tab}{Tab}{Tab}{Tab}{Tab}{Tab}{Tab}%r%{Tab}%g%{Tab}%b%{Enter}{Tab}{Tab}{Tab}{Tab}{Tab}{Enter}
 		return
 	}
@@ -718,6 +720,9 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	~^`::Send, ^`		;恢复Ditto本来功能
 	!`::Send, ``		;恢复本来的`功能
 	^b::Send, ^t^v{Enter}		;快捷打开复制的网址
+	
+	;某些网页，单击win造成的双击ctrl，会触发js，导致win+a印象笔记摘录失效，所以这里屏蔽一下，改成单击ctrl
+	~LWin:: SendInput, {LControl}
 	
 	Numpad0 & w::
 	{
