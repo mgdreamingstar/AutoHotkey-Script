@@ -40,6 +40,16 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 ;~ 函数部分
 ;-------------------------------------------------------------------------------
 {
+	;Unicode发送函数,避免触发输入法,也不受全角影响
+	;from [辅助Send 发送ASCII字符 V1.7.2](http://ahk8.com/thread-5385.html)
+	SendL(ByRef string) {
+		static Ord:=("Asc","Ord")
+		inputString:=("string",string)
+		Loop, Parse, %inputString%
+			ascString.=(_:=%Ord%(A_LoopField))<0x100?"{ASC " _ "}":A_LoopField
+		SendInput, % ascString
+	}
+	
 	;evernote编辑器增强函数
 	evernoteEdit(eFoward, eEnd)
 	{
@@ -157,6 +167,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		#m::Run resmon
 		#!c::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\ColorPic 4.1  屏幕取色小插件 颜色 色彩 配色\#ColorPic.exe"
 		^#s::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\#Fast Run\st.lnk"
+		>!m::Run, "C:\Users\LL\AppData\Roaming\Spotify\Spotify.exe"
 		#s::
 			Run sx
 			Run pp
@@ -186,7 +197,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		::b\::bootislands
 		;用unicode方式，以免触发输入法
 		:*:b@\::{U+0062}{U+006F}{U+006F}{U+0074}{U+0069}{U+0073}{U+006C}{U+0061}{U+006E}{U+0064}{U+0073}{U+0040}{U+0031}{U+0036}{U+0033}{U+002E}{U+0063}{U+006F}{U+006D}
-		:*:bg\::bootislands@gmail.com
+		:*:bg\::{shift}bootislands@gmail.com
 		:*:r@\::riverno@gmail.com
 		:*:rg\::riverno@gmail.com
 		:*:q@\::{shift}1755381995@qq.com
@@ -367,6 +378,8 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	;Tab & q::SendInput, {U+005B}{U+005D}
 	Tab & w::SendInput, √
 	Tab & e::SendInput, ×
+	Tab & r::SendInput, ●
+	Tab & t::SendInput, ○
 	$`::SendInput, ``
 	+`::SendInput, ~{Shift}
 	~^`::SendInput, ^`
@@ -805,6 +818,9 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	Numpad0::Send, {ESC}
 	
 	Numpad0 & q::SendInput ^!v
+
+	;添加笔记型 注释
+	F1::SendL("@note: ")
 }
 
 ;-------------------------------------------------------------------------------
