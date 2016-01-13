@@ -821,6 +821,12 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 
 	;添加笔记型 注释
 	F1::SendL("@note: ")
+	;添加疑问型 注释
+	F2::SendL("@problem: ")
+	;添加todo型 注释
+	!F2::SendL("@todo: ")
+	;Go To Matching Pair
+	Numpad0 & j::SendInput ^!+j
 }
 
 ;-------------------------------------------------------------------------------
