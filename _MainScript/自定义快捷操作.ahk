@@ -69,6 +69,8 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		;MsgBox, % html
 		WinClip.SetHTML(html)
 		Sleep, 300
+		;SendInput, {Space}{backspace}
+		;Sleep,2000
 		Send ^v
 		;BlockInput Off
 		Return
@@ -386,38 +388,10 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	
 	F3::SendInput, ^!t			;批量打标签
 	
-	;显示回收站
-	Numpad0 & r::SendInput !vpb
 	
-	;复制到当前笔记本
-	F5::
-	{
-		SendInput, {AppsKey}c
-		Sleep, 200
-		SendInput, {Enter}
-		return
-	}
-	
-	;导出笔记
-	F6::
-	{
-		SendInput, {AppsKey}x{Enter}
-		Sleep, 200
-		SendInput, {Enter}
-		return
-	}
-	
-	;简化格式
-	F1::SendInput, !oSS{Enter}
-	
-	;加括号
-	Tab & a::
-	{
-		Send, ^x
-		Send, (%Clipboard%)
-		return
-	}
-	
+	;evernote从v8.9.0起，编辑器大幅改变，造成以下代码产生bug，粘贴后出现顽固多余空格，div强制换行等等
+	;故暂时不要升级，留在v5.8.12
+	;http://update.evernote.com/public/ENWin5/ReleaseNotes_5.9.6.9494_en-us.html
 	;字体红色
 	#1::evernoteEditText("<div style='color: #F02E37;'><b>", "</b></div>")
 	;字体绿色
@@ -460,6 +434,42 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	#F4::evernoteEditText("<div style='color: #E1BC29;'>", "</div>")
 	;字体紫色
 	#F5::evernoteEditText("<div style='color: #C200FB;'>", "</div>")
+	
+	
+	
+	
+	
+	;显示回收站
+	Numpad0 & r::SendInput !vpb
+	
+	;复制到当前笔记本
+	F5::
+	{
+		SendInput, {AppsKey}c
+		Sleep, 200
+		SendInput, {Enter}
+		return
+	}
+	
+	;导出笔记
+	F6::
+	{
+		SendInput, {AppsKey}x{Enter}
+		Sleep, 200
+		SendInput, {Enter}
+		return
+	}
+	
+	;简化格式
+	F1::SendInput, !oSS{Enter}
+	
+	;加括号
+	Tab & a::
+	{
+		Send, ^x
+		Send, (%Clipboard%)
+		return
+	}
 }
 
 ;-------------------------------------------------------------------------------
@@ -552,7 +562,6 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	;Brower中预览卡片
 	Numpad0 & q::SendInput, ^+p
 }
-
 
 ;-------------------------------------------------------------------------------
 ;~ cmd快捷键
@@ -869,7 +878,6 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	Numpad0 & a::SendInput, #o
 }
 */
-
 
 ;-------------------------------------------------------------------------------
 ;~ 自动保存
