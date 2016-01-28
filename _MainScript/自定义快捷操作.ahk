@@ -150,6 +150,9 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 ;~ 全局键位
 ;-------------------------------------------------------------------------------
 {	
+	;临时
+	Tab & o::	
+
 	;常用软件快速启动
 	{
 		;配合Listary快速启动
@@ -157,6 +160,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		#c::Run "d:\TechnicalSupport\ProgramFiles\babun-1.2.0\.babun\babun.bat"
 		;注意主profile不要加--no-remote，否则evernote等打开链接时，会报错「已经运行，没有响应」云云。这里不必装安装版
 		#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\UseFirefox\firefox\firefox.exe"
+		!#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\UseFirefox\firefox\firefox.exe" --no-remote
 		#d::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\DevFirefox\pcxfirefox\firefox.exe" --no-remote
 		;#g::Run "d:\TechnicalSupport\ProgramFiles\GoogleChrome 便携版\MyChrome for Use\MyChrome.exe"
 		#g::Run "d:\TechnicalSupport\ProgramFiles\GoogleChrome 便携版\MyChrome for Dev\MyChrome.exe"
@@ -230,6 +234,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 
 		;输入 不可见&宽度0 的字符
 		Tab & Space:: SendInput, {U+2067}{U+2068}{U+2069}{U+206A}{U+206B}{U+206C}
+		
 		;还有些字符也不可见且宽度0，但是由于被列入network.IDN.blacklist_chars，所以经常被过滤掉，例如 {U+115F}{U+1160}{U+200B}{U+1160}{U+115F}{U+2001}{U+2002}{U+2003}{U+2004}{U+2005}{U+2006}{U+2007}{U+2008}{U+2009}{U+200A}{U+200B}{U+2028}{U+2029}{U+202F}{U+205F}{U+3000}{U+3164}{U+FEFF}
 		;输入 不可见&宽度非0 的字符
 		Numpad0 & Space:: SendInput, {U+115A}{U+115B}{U+115C}{U+115D}{U+115E}{U+11A3}{U+11A4}{U+11A5}{U+11A6}{U+11A7}
@@ -254,9 +259,6 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		}	
 		return
 	*/
-	Tab & o::SendInput, {Tab}{Space}{Tab}{Space}{Tab}{Tab}{Space}{Tab}{Space}{Tab}{Tab}{Space}{Tab}{Tab}{Space}{Tab}{Space}{Tab}{Space}{Tab}{Tab}{Space}{Tab}{Space}{Tab}{Tab}{Space}{Tab}{Tab}{Space}{Tab}{Space}{Tab}{Space}{Tab}{Tab}{Space}{Tab}{Space}{Tab}{Tab}{Space}{Tab}{Tab}{Space}
-	
-	
 	
 	;双击esc退出焦点程序
 	~Esc::
@@ -295,7 +297,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	;配合有道词典取词
 	~LWin:: Send, {LControl}{LControl}
 	
-	;豆瓣搜索
+	;豆瓣book搜索
 	Numpad0 & d::
 	{
 		clipboard = 
@@ -309,12 +311,12 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		return
 	}
 	
-	;谷歌搜索
-	Numpad0 & g::
+	Numpad0 & m::
 	{
+		clipboard = 
 		Send, ^c
 		ClipWait  ; 等待剪贴板中出现文本.
-		clipboard = https://www.google.com/search?newwindow=1&site=&source=hp&q=%clipboard%&=&=&oq=&gs_l=
+		clipboard = http://music.douban.com/subject_search?search_text=%clipboard%&cat=1001
 		WinActivate, ahk_exe firefox.exe
 		SendInput, ^t
 		Sleep, 1
@@ -322,10 +324,27 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		return
 	}
 	
-	;快速打开复制的链接
-	Numpad0 & f::
+	;谷歌搜索
+	Numpad0 & g::
 	{
-		Send, ^c
+		clipboard = 
+		SendInput, {Ctrl Down}c{Ctrl Up}
+		ClipWait  ; 等待剪贴板中出现文本.
+		backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
+		clipboard = https://www.google.com/search?newwindow=1&site=&source=hp&q=%clipboard%&=&=&oq=&gs_l=
+		WinActivate, ahk_exe firefox.exe
+		SendInput, ^t
+		Sleep, 1
+		SendInput, ^v{Enter}
+		clipboard = %backup%
+		return
+	}
+	
+	;快速打开复制的链接
+	/*Numpad0 & f::
+	{
+		clipboard = 
+		SendInput, ^c
 		ClipWait  ; 等待剪贴板中出现文本.
 		clipboard = http://%clipboard%
 		WinActivate, ahk_exe firefox.exe
@@ -334,10 +353,12 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		SendInput, ^v{Enter}
 		return
 	}
+	*/
 	
 	;快速查词
 	Numpad0 & e::
 	{
+		clipboard = 
 		Send, ^c
 		ClipWait  ; 等待剪贴板中出现文本.
 		clipboard = http://dict.youdao.com/search?q=%clipboard%
@@ -636,7 +657,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	^Down::
 		Send, ^1
 		StringReplace, clipboard, clipboard, :
-		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /S /R="d:\TechnicalSupport\Sandbox\LiLong\UnstableSoftware\drive\%Clipboard%"
+		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /S /R="d:\TechnicalSupport\Sandbox\LL\DefaultBox\drive\%Clipboard%"
 		return
 }
 
@@ -811,7 +832,8 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		
 		;tab
 		;Tab::SendInput, {Space}{Space}{Space}{Space}
-	
+		
+		!F1::SendInput, !s
 	}
 }
 
@@ -827,13 +849,16 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	Numpad0::Send, {ESC}
 	
 	Numpad0 & q::SendInput ^!v
+	
+	F1::Send, ^+{Tab}	;切换到前一标签
+	F2::Send, ^{Tab}	;切换到后一标签
 
 	;添加笔记型 注释
-	F1::SendL("@note: ")
+	!F1::SendL("@note: ")
 	;添加疑问型 注释
-	F2::SendL("@problem: ")
+	!F2::SendL("@problem: ")
 	;添加todo型 注释
-	!F2::SendL("@todo: ")
+	;!F3::SendL("@todo: ")
 	;Go To Matching Pair
 	Numpad0 & j::SendInput ^!+j
 }
@@ -871,6 +896,94 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 }
 
 ;-------------------------------------------------------------------------------
+;~ pdg2pic: pdg批量转换pdf
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_exe Pdg2Pic.exe
+{
+	F1::
+		SetControlDelay -1
+		
+		WinGet, dir, ProcessPath, A
+		;MsgBox %OutputVar%
+		SplitPath, dir, , outdir
+		;MsgBox %outdir%
+		FileDelete, Pdg2Pic_log.txt
+		
+	;goto 检查日志
+		
+		静止状态:		;等待按 开始转换
+		Loop {
+			ControlClick, &4、开始转换, Pdg2Pic	;点击开始转换
+			Sleep 1000
+			ControlGet, ifenable, Enabled, , 转换完毕, Pdg2Pic
+			if ifenable = 1
+				goto 点击完成
+		}
+			
+		点击完成:
+			;ControlGet, ifenable2, Visible, , 错误记录, Pdg2Pic
+			;if ifenable2 = 0
+				ControlClick, 确定, Pdg2Pic		;点击转换完成的确定
+			;ControlGetText, ifenable2 , 否, Pdg2Pic
+			ControlGet, ifenable2, Enabled, , 否, Pdg2Pic
+			;MsgBox, % ifenable2
+			if ifenable2 = 1
+			{
+				SendInput, {Right}{Space}
+			}
+			;ControlClick, , Pdg2Pic	;出错后，不查看log
+			
+		检查日志:
+			;检查是否有日志，如果有则copy
+			ilog = %outdir%\Pdg2Pic_log.txt
+			;MsgBox, %ilog%
+			FileRead, OutputVar, %ilog%
+			;MsgBox, %OutputVar%
+			if NOT ErrorLevel
+			{
+				;如果文件不存在，则为1，如果成功读取到了，则为0
+				FileAppend, %OutputVar%, Pdg2Pic_log.txt
+			}
+		
+			goto 选择下一本书
+			
+		选择下一本书:
+			Sleep 1000
+			;ControlGet, ifenable3, Enabled, , Button2, Pdg2Pic	;检查是否可点击 选书 按钮
+			;if WinActive("Pdg2Pic") and ifenable3 = 1
+			;{
+				ControlClick, Button2, Pdg2Pic	;点击选书
+				Sleep, 1500
+				SendInput, {Down}
+				Sleep, 1500
+				
+				;ControlGet, ifenable4, Enabled, , 确定, 选择存放PDG文件的文件夹		;检查当前是否在文件树 控件
+				;if ifenable4 = 1
+				;{
+					ControlClick, 确定, 选择存放PDG文件的文件夹	;点击确定，完成选书
+				;}
+				Sleep, 500
+				goto 检查是否完成
+			;}
+			
+		检查是否完成:
+			ControlGet, ifenable3, Visible, , 文件夹里没有, Pdg2Pic
+			;MsgBox, % ifenable3
+			if (ifenable3 = 1)
+			{
+				SendInput, {Space}
+				;最前端弹窗
+				MsgBox, 262144, PDG->PDF, 全部转换已完成！`n`n错误日志，参见脚本同目录下的Pdg2Pic_log.txt`n(若没有本文件，则表示一切正常)
+			}
+			else
+			{
+				goto 静止状态
+			}
+		return
+	
+}
+
+;-------------------------------------------------------------------------------
 ;~ 在"另存为""保存"等窗口，配合Listary进行快速穿越快捷键
 ;-------------------------------------------------------------------------------
 /*#IfWinActive ahk_class #32770
@@ -902,4 +1015,5 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		}
 	}
 }
+
 
