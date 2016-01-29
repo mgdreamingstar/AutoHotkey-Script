@@ -40,6 +40,21 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 ;~ 函数部分
 ;-------------------------------------------------------------------------------
 {
+	openLink(before, after) {
+		clipboard = 
+		Send, ^c
+		ClipWait  ; 等待剪贴板中出现文本.
+		backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
+		clipboard = %before%%clipboard%%after%
+		WinActivate, ahk_exe firefox.exe
+		SendInput, ^t
+		Sleep, 1
+		SendInput, ^v{Enter}
+		Sleep, 500	;这里必须加个延迟，否则下一行太快执行
+		clipboard = %backup%
+		return
+	}
+	
 	;Unicode发送函数,避免触发输入法,也不受全角影响
 	;from [辅助Send 发送ASCII字符 V1.7.2](http://ahk8.com/thread-5385.html)
 	SendL(ByRef string) {
@@ -260,13 +275,20 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		return
 	*/
 	
+	;豆瓣book搜索
+	Numpad0 & d::openLink("http://book.douban.com/subject_search?search_text=", "&cat=1001")
+	;豆瓣music搜索
+	Numpad0 & m::openLink("http://music.douban.com/subject_search?search_text=", "&cat=1001")
+	;谷歌搜索
+	Numpad0 & g::openLink("https://www.google.com/search?newwindow=1&site=&source=hp&q=", "&=&=&oq=&gs_l=")
+	;快速查词典
+	Numpad0 & e::openLink("http://dict.youdao.com/search?q=", "")
+	
 	;双击esc退出焦点程序
 	~Esc::
-	{
-		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500)
+		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500) 
 			Send, !{F4}
 		return
-	}
 
 	;配合snagit，单击prtsc截屏；双击prtsc5秒延迟截屏
 	{
@@ -285,7 +307,6 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 			Return
 	}
 
-
 	;恢复Tab键原本功能
 	{
 		$Tab::Send, {Tab}
@@ -296,78 +317,6 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	
 	;配合有道词典取词
 	~LWin:: Send, {LControl}{LControl}
-	
-	;豆瓣book搜索
-	Numpad0 & d::
-	{
-		clipboard = 
-		Send, ^c
-		ClipWait  ; 等待剪贴板中出现文本.
-		clipboard = http://book.douban.com/subject_search?search_text=%clipboard%&cat=1001
-		WinActivate, ahk_exe firefox.exe
-		SendInput, ^t
-		Sleep, 1
-		SendInput, ^v{Enter}
-		return
-	}
-	
-	Numpad0 & m::
-	{
-		clipboard = 
-		Send, ^c
-		ClipWait  ; 等待剪贴板中出现文本.
-		clipboard = http://music.douban.com/subject_search?search_text=%clipboard%&cat=1001
-		WinActivate, ahk_exe firefox.exe
-		SendInput, ^t
-		Sleep, 1
-		SendInput, ^v{Enter}
-		return
-	}
-	
-	;谷歌搜索
-	Numpad0 & g::
-	{
-		clipboard = 
-		SendInput, {Ctrl Down}c{Ctrl Up}
-		ClipWait  ; 等待剪贴板中出现文本.
-		backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
-		clipboard = https://www.google.com/search?newwindow=1&site=&source=hp&q=%clipboard%&=&=&oq=&gs_l=
-		WinActivate, ahk_exe firefox.exe
-		SendInput, ^t
-		Sleep, 1
-		SendInput, ^v{Enter}
-		clipboard = %backup%
-		return
-	}
-	
-	;快速打开复制的链接
-	/*Numpad0 & f::
-	{
-		clipboard = 
-		SendInput, ^c
-		ClipWait  ; 等待剪贴板中出现文本.
-		clipboard = http://%clipboard%
-		WinActivate, ahk_exe firefox.exe
-		SendInput, ^t
-		Sleep, 1
-		SendInput, ^v{Enter}
-		return
-	}
-	*/
-	
-	;快速查词
-	Numpad0 & e::
-	{
-		clipboard = 
-		Send, ^c
-		ClipWait  ; 等待剪贴板中出现文本.
-		clipboard = http://dict.youdao.com/search?q=%clipboard%
-		WinActivate, ahk_exe firefox.exe
-		SendInput, ^t
-		Sleep, 1
-		SendInput, ^v{Enter}
-		return
-	}
 	
 	;配合anki收集
 	Numpad0 & s::
@@ -767,33 +716,8 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	;某些网页，单击win造成的双击ctrl，会触发js，导致win+a印象笔记摘录失效，所以这里屏蔽一下，改成单击ctrl
 	~LWin:: SendInput, {LControl}
 	
-	Numpad0 & w::
-	{
-		clipboard = 
-		Send, ^c
-		ClipWait  ; 等待剪贴板中出现文本.
-		clipboard = http://zh.wikipedia.org/w/index.php?search=%clipboard%
-		WinActivate, ahk_exe firefox.exe
-		SendInput, ^t
-		Sleep, 1
-		SendInput, ^v{Enter}
-		return
-	}
-	
-	Numpad0 & q::
-	{
-		clipboard = 
-		Send, ^c
-		ClipWait  ; 等待剪贴板中出现文本.
-		;str := urlencode(clipboard)
-		;clipboard = http://book.szdnet.org.cn/search?Field=all&channel=search&sw=%str%
-		clipboard = http://book.szdnet.org.cn/search?Field=all&channel=search&sw=%clipboard%
-		WinActivate, ahk_exe firefox.exe
-		SendInput, ^t
-		Sleep, 1
-		SendInput, ^v{Enter}
-		return
-	}
+	Numpad0 & w::openLink("http://zh.wikipedia.org/w/index.php?search=", "")
+	Numpad0 & q::openLink("http://book.szdnet.org.cn/search?Field=all&channel=search&sw=", "")
 
 	;还没想好怎么做
 	;自动判断是否选中文本，否的话，替换复制为全选+复制
