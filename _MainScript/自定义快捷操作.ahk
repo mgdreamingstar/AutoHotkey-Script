@@ -189,6 +189,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		#!c::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\ColorPic 4.1  屏幕取色小插件 颜色 色彩 配色\#ColorPic.exe"
 		^#s::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\#Fast Run\st.lnk"
 		>!m::Run, "C:\Users\LL\AppData\Roaming\Spotify\Spotify.exe"
+		>^>!m::Run, "D:\BaiduYun\Technical Backup\ProgramFiles\Spotify 客户端去广告工具\EZBlocker.exe"
 		#s::
 			Run sx
 			Run pp
@@ -679,8 +680,8 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	;备用色
 	;!1::changebg(205, 164, 133)				;驼色#CDA485，
 	
-	;双击鼠标左键，自动取词
-	/*$RButton::
+	;选中单词后，按鼠标右键，自动取词
+	$RButton::
 		SendInput, {RButton}y
 		Sleep, 200
 		Send {BackSpace}
@@ -696,7 +697,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 			}
 		}	
 	return
-	*/
+	
 }
 
 ;-------------------------------------------------------------------------------
@@ -718,7 +719,24 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	
 	Numpad0 & w::openLink("http://zh.wikipedia.org/w/index.php?search=", "")
 	Numpad0 & q::openLink("http://book.szdnet.org.cn/search?Field=all&channel=search&sw=", "")
-
+	Numpad0 & e::openLink("es ", "")		;配合Firefox，E书园搜索
+	Numpad0 & r::		;E书园求书时用，文献港链接 替换成 读秀链
+	{
+		clipboard = 
+		SendInput, ^a
+		Sleep, 100
+		SendInput, ^c
+		ClipWait  ; 等待剪贴板中出现文本.
+		backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
+		clipboard := RegExReplace(clipboard, "szdnet.org.cn/views/specific/2929", "duxiu.com")  
+		SendInput, ^v{Enter}
+		Sleep, 500	;这里必须加个延迟，否则下一行太快执行
+		clipboard = %backup%
+		return
+	}
+	
+	;^s::MouseClick, WheelDown, , , 25
+	
 	;还没想好怎么做
 	;自动判断是否选中文本，否的话，替换复制为全选+复制
 	;^c::
@@ -905,6 +923,19 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 			}
 		return
 	
+}
+
+;-------------------------------------------------------------------------------
+;~ 桌面在最前端时，快捷键
+;-------------------------------------------------------------------------------
+
+#IfWinActive ahk_exe explorer.exe
+{
+	;双击esc关机
+	~Esc::
+		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500) 
+			Run, "D:\BaiduYun\Technical Backup\ProgramFiles\Shutdown8  定时关机\Shutdown8 关机.exe"
+		return
 }
 
 ;-------------------------------------------------------------------------------
