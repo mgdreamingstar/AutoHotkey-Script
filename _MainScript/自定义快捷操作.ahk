@@ -373,14 +373,16 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	#2::evernoteEditText("<div style='color: #3740E6;'><b>", "</b></div>")
 	;字体白色（选中可见）
 	Numpad0 & w::evernoteEditText("↓反白可见<div style='color: white;'>", "</div>&nbsp;&nbsp;↑")
+	
+	;20160206 迫不得已将bg色全换成Text()了，因为复杂笔记内，保留原格式总出问题，简单的去格式只刷背景色才有效
 	;背景色黄色
-	!1::evernoteEdit("<div style='background: #FFFAA5;'>", "</div>")
+	!1::evernoteEditText("<div style='background: #FFFAA5;'>", "</div>")
 	;背景色蓝色
-	!2::evernoteEdit("<div style='background: #ADD8E6;'>", "</div>")		;不要蓝色#ADD8E6
+	!2::evernoteEditText("<div style='background: #ADD8E6;'>", "</div>")		;不要蓝色#ADD8E6
 	;背景色灰色
-	!3::evernoteEdit("<div style='background: #D3D3D3;'>", "</div>")
+	!3::evernoteEditText("<div style='background: #D3D3D3;'>", "</div>")
 	;背景色绿色
-	!4::evernoteEdit("<div style='background: #90EE90;'>", "</div>")		;原颜色#FFD796
+	!4::evernoteEditText("<span style='background: #90EE90;'>", "</span>")		;原颜色#FFD796
 	;方框环绕
 	!f::evernoteEdit("<div style='margin-top: 5px; margin-bottom: 9px; word-wrap: break-word; padding: 8.5px; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: rgb(245, 245, 245); border: 1px solid rgba(0, 0, 0, 0.148438)'>", "</div></br>")
 	;超级标题
