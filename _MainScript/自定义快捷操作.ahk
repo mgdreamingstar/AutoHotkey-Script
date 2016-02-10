@@ -17,6 +17,10 @@ CountStp := 0	;一键多用的计时器
 
 Menu, Tray, Icon, %A_LineFile%\..\..\icon\自定义快捷操作.ico, , 1
 Menu, tray, tip, 自定义快捷键、自动保存 by LL
+TrayTip, 提示, 脚本已启动, , 1
+Sleep, 1000
+TrayTip
+return
 
 ;-------------------------------------------------------------------------------
 ;~ 预处理部分
@@ -682,24 +686,32 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	;备用色
 	;!1::changebg(205, 164, 133)				;驼色#CDA485，
 	
-	;选中单词后，按鼠标右键，自动取词
-	$RButton::
-		SendInput, {RButton}y
-		Sleep, 200
-		Send {BackSpace}
+
+	;^右键 作为开关，控制右键取词模式，是否打开
+	{
+		flag := 0
+		^RButton:: flag += 1
 		
-		timeNow:=A_TickCount
-		while(A_TickCount - timeNow < 500) 			;等1秒钟，
-		{
-			IfWinExist, ahk_class #32770				;期间出现ahk_class #32770的弹窗
+		#If Mod(flag, 2)
+		;选中单词后，按鼠标右键，自动取词
+		$RButton::
+			SendInput, {RButton}y
+			Sleep, 200
+			Send {BackSpace}
+			
+			timeNow:=A_TickCount
+			while(A_TickCount - timeNow < 500) 			;等1秒钟，
 			{
-				;WinActivate  ; 自动使用上面找到的窗口.
-				Send, {Space}
-				return
-			}
-		}	
-	return
-	
+				IfWinExist, ahk_class #32770				;期间出现ahk_class #32770的弹窗
+				{
+					;WinActivate  ; 自动使用上面找到的窗口.
+					Send, {Space}
+					return
+				}
+			}	
+		return
+		#If	;关闭上下文指定	
+	}
 }
 
 ;-------------------------------------------------------------------------------
