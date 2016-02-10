@@ -287,7 +287,7 @@ return
 	;谷歌搜索
 	Numpad0 & g::openLink("https://www.google.com/search?newwindow=1&site=&source=hp&q=", "&=&=&oq=&gs_l=")
 	;快速查词典
-	Numpad0 & e::openLink("http://dict.youdao.com/search?q=", "")
+	Numpad0 & c::openLink("http://dict.youdao.com/search?q=", "")
 	
 	;双击esc退出焦点程序
 	~Esc::
