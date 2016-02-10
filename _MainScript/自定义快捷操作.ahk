@@ -46,7 +46,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 		ClipWait  ; 等待剪贴板中出现文本.
 		backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
 		clipboard = %before%%clipboard%%after%
-		WinActivate, ahk_exe firefox.exe
+		WinActivate, ahk_class MozillaWindowClass
 		SendInput, ^t
 		Sleep, 1
 		SendInput, ^v{Enter}
