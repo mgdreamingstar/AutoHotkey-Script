@@ -753,14 +753,27 @@ TrayTip
 	}
 	
 	;双击右键，调用diigo高亮，同时不干扰鼠标手势
-	;在Up时判断：和上次Up间隔短则高亮，和上次Down间隔短则弹出右键，都不是则发送Down指令
-	$RButton::
 	{
-		if (A_PriorHotkey ~="RButton" && A_TimeSincePriorHotkey < 400)
-			Send, h
-		else
-			Send {RButton}
-		return
+		;在Up时判断：和上次Up间隔短则高亮，和上次Down间隔短则弹出右键，都不是说明是鼠标手势则忽略
+		;菜单在Up时弹出，手势在down且超时时启用
+		UpStartTime := A_TickCount	;初始化
+		~RButton::			;在按下时触发
+			DownStartTime := A_TickCount
+			return
+			 
+		$RButton up::		;在弹起时触发
+			DownTime := A_TickCount - DownStartTime
+			UpTime := A_TickCount - UpStartTime
+			UpStartTime := A_TickCount
+			if (UpTime < 1000 && UpTime > 100)
+			{
+				SendInput, h
+			} 
+			else if (DownTime < 300)
+			{
+				SendInput, {RButton}
+			}
+			return
 	}
 	
 	;^s::MouseClick, WheelDown, , , 25
