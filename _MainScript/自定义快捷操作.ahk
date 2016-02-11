@@ -20,7 +20,7 @@ Menu, tray, tip, 自定义快捷键、自动保存 by LL
 TrayTip, 提示, 脚本已启动, , 1
 Sleep, 1000
 TrayTip
-return
+;return		;注：这里不能加return
 
 ;-------------------------------------------------------------------------------
 ;~ 预处理部分
@@ -232,7 +232,8 @@ return
 		:*:yjt\:: ⇒{Space}					;	右箭头
 		Tab & s:: Send, ▶{Space}			;	右三角
 		Tab & d:: Send, •{Space}			;	圆点
-		Tab & f:: Send, ■{Space}			;	方点
+		;Tab & f:: Send, ■{Space}			;	方点
+		Tab & f:: Send, ●{Space}			;	大圆点
 		Tab & 1:: Send, ❶{Space}
 		Tab & 2:: Send, ❷{Space}
 		Tab & 3:: Send, ❸{Space}
@@ -318,6 +319,7 @@ return
 		LAlt & Tab::AltTab
 		^Tab::Send, ^{Tab}
 		^+Tab::Send, ^+{Tab}
+		+Tab::SendInput, +{Tab}
 	}
 	
 	;配合有道词典取词
@@ -380,6 +382,7 @@ return
 	
 	;20160206 迫不得已将bg色全换成Text()了，因为复杂笔记内，保留原格式总出问题，简单的去格式只刷背景色才有效
 	;背景色黄色
+	MButton::SendInput, ^+h		;中键标注，用来阅读文章时批注很方便
 	!1::evernoteEditText("<div style='background: #FFFAA5;'>", "</div>")
 	;背景色蓝色
 	!2::evernoteEditText("<div style='background: #ADD8E6;'>", "</div>")		;不要蓝色#ADD8E6
@@ -746,6 +749,17 @@ return
 		SendInput, ^v{Enter}
 		Sleep, 500	;这里必须加个延迟，否则下一行太快执行
 		clipboard = %backup%
+		return
+	}
+	
+	;双击右键，调用diigo高亮，同时不干扰鼠标手势
+	;在Up时判断：和上次Up间隔短则高亮，和上次Down间隔短则弹出右键，都不是则发送Down指令
+	$RButton::
+	{
+		if (A_PriorHotkey ~="RButton" && A_TimeSincePriorHotkey < 400)
+			Send, h
+		else
+			Send {RButton}
 		return
 	}
 	
