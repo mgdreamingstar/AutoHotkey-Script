@@ -47,7 +47,7 @@ TrayTip
 	openLink(before, after) {
 		clipboard = 
 		Send, ^c
-		ClipWait  ; 等待剪贴板中出现文本.
+		ClipWait, 1  ; 等待剪贴板中出现文本.
 		backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
 		clipboard = %before%%clipboard%%after%
 		WinActivate, ahk_class MozillaWindowClass
@@ -75,7 +75,7 @@ TrayTip
 		;BlockInput On
 		clipboard =
 		Send ^c
-		ClipWait, ,
+		ClipWait, 1
 		t := WinClip.GetHtml3()
 		;MsgBox, % t
 		;t := WinClip.GetText()
@@ -100,7 +100,7 @@ TrayTip
 	{
 		clipboard =
 		Send ^c
-		ClipWait, ,
+		ClipWait, 1
 		t := WinClip.GetText()
 		html = %eFoward%%t%%eEnd%
 		WinClip.Clear()
@@ -163,6 +163,84 @@ TrayTip
 			WinPath .= "\"
 		Return WinPath
 	}
+	
+	;=============================================================================================================
+	; Func: GetProcessMemory_Private
+	; Get the number of private bytes used by a specified process.  Result is in K by default, but can also be in
+	; bytes or MB.
+	;
+	; Params:
+	;   ProcName    - Name of Process (e.g. Firefox.exe)
+	;   Units       - Optional Unit of Measure B | K | M.  Defaults to K (Kilobytes)
+	;
+	; Returns:
+	;   Private bytes used by the process
+	;-------------------------------------------------------------------------------------------------------------
+	GetProcessMemory_Private(ProcName, Units="K") {
+		Process, Exist, %ProcName%
+		pid := Errorlevel
+
+		; get process handle
+		hProcess := DllCall( "OpenProcess", UInt, 0x10|0x400, Int, false, UInt, pid )
+
+		; get memory info
+		PROCESS_MEMORY_COUNTERS_EX := VarSetCapacity(memCounters, 44, 0)
+		DllCall( "psapi.dll\GetProcessMemoryInfo", UInt, hProcess, UInt, &memCounters, UInt, PROCESS_MEMORY_COUNTERS_EX )
+		DllCall( "CloseHandle", UInt, hProcess )
+
+		SetFormat, Float, 0.0 ; round up K
+
+		PrivateBytes := NumGet(memCounters, 40, "UInt")
+		if (Units == "B")
+			return PrivateBytes
+		if (Units == "K")
+			Return PrivateBytes / 1024
+		if (Units == "M")
+			Return PrivateBytes / 1024 / 1024
+	}
+
+
+	;=============================================================================================================
+	; Func: GetProcessMemory_All
+	; Get all Process Memory Usage Counters.  Mimics what's shown in Task Manager.
+	;
+	; Params:
+	;   ProcName    - Name of Process (e.g. Firefox.exe)
+	;
+	; Returns:
+	;   String with all values in KB as one big string.  Use a Regular Expression to parse out the value you want.
+	;-------------------------------------------------------------------------------------------------------------
+	GetProcessMemory_All(ProcName) {
+		Process, Exist, %ProcName%
+		pid := Errorlevel
+
+		; get process handle
+		hProcess := DllCall( "OpenProcess", UInt, 0x10|0x400, Int, false, UInt, pid )
+
+		; get memory info
+		PROCESS_MEMORY_COUNTERS_EX := VarSetCapacity(memCounters, 44, 0)
+		DllCall( "psapi.dll\GetProcessMemoryInfo", UInt, hProcess, UInt, &memCounters, UInt, PROCESS_MEMORY_COUNTERS_EX )
+		DllCall( "CloseHandle", UInt, hProcess )
+
+		list := "cb,PageFaultCount,PeakWorkingSetSize,WorkingSetSize,QuotaPeakPagedPoolUsage"
+			  . ",QuotaPagedPoolUsage,QuotaPeakNonPagedPoolUsage,QuotaNonPagedPoolUsage"
+			  . ",PagefileUsage,PeakPagefileUsage,PrivateUsage"
+
+		n := 0
+		Loop, Parse, list, `,
+		{
+			n += 4
+			SetFormat, Float, 0.0 ; round up K
+			this := A_Loopfield
+			this := NumGet( memCounters, (A_Index = 1 ? 0 : n-4), "UInt") / 1024
+
+			; omit cb
+			If A_Index != 1
+				info .= A_Loopfield . ": " . this . " K" . ( A_Loopfield != "" ? "`n" : "" )
+		}
+
+		Return "[" . pid . "] " . pname . "`n`n" . info ; for everything
+	}
 }
 
 ;-------------------------------------------------------------------------------
@@ -182,7 +260,7 @@ TrayTip
 		!#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\UseFirefox\firefox\firefox.exe" --no-remote
 		#d::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\DevFirefox\pcxfirefox\firefox.exe" --no-remote
 		;#g::Run "d:\TechnicalSupport\ProgramFiles\GoogleChrome 便携版\MyChrome for Use\MyChrome.exe"
-		#g::Run "d:\TechnicalSupport\ProgramFiles\GoogleChrome 便携版\MyChrome for Dev\MyChrome.exe"
+		#g::Run "d:\TechnicalSupport\ProgramFiles\GoogleChrome 便携版\MyChrome for Use&Dev\MyChrome.exe"
 		#n::Run notepad
 		#z::Run "d:\TechnicalSupport\ProgramFiles\AutoHotkey\SciTE\SciTE.exe"
 		;#z::Run "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\plugins\wlx\Syn2\Syn.exe" "d:\BaiduYun\@\Software\AHKScript\_MainScript\自定义快捷操作.ahk"
@@ -220,14 +298,24 @@ TrayTip
 
 	;快捷输入
 	{
-		::b\::bootislands
-		;用unicode方式，以免触发输入法
-		:*:b@\::{U+0062}{U+006F}{U+006F}{U+0074}{U+0069}{U+0073}{U+006C}{U+0061}{U+006E}{U+0064}{U+0073}{U+0040}{U+0031}{U+0036}{U+0033}{U+002E}{U+0063}{U+006F}{U+006D}
-		:*:bg\::{shift}bootislands@gmail.com
-		:*:r@\::riverno@gmail.com
-		:*:rg\::riverno@gmail.com
-		:*:q@\::{shift}1755381995@qq.com
+		:*:b\::bootislands
 		:*:bo\::bootislands
+		;放弃unicode难读的方式，用sendL()，来避免触发输入法
+		:*:b@\::
+			sendL("bootislands@163.com")
+			return
+		:*:bg\::
+			sendL("bootislands@gmail.com")
+			return
+		:*:vg\::
+			sendL("VeryNginx@gmail.com")
+			return
+		:*:rg\::
+			sendL("riverno@gmail.com")
+			return
+		:*:q@\::
+			sendL("1755381995@qq.com")
+			return
 		::ahk::AutoHotkey
 		:*:yjt\:: ⇒{Space}					;	右箭头
 		Tab & s:: Send, ▶{Space}			;	右三角
@@ -372,7 +460,7 @@ TrayTip
 	;字体红色
 	#1::evernoteEditText("<div style='color: #F02E37;'><b>", "</b></div>")
 	;字体绿色
-	#4::evernoteEditText("<div style='color: #0F820F;'><b>", "</b></div>")
+	#4::evernoteEditText("<div style='color: #0F820F;'>", "</div>")
 	;字体灰色
 	#3::evernoteEditText("<div style='color: #D6D6D6;'>", "</div>")
 	;字体蓝色
@@ -382,7 +470,6 @@ TrayTip
 	
 	;20160206 迫不得已将bg色全换成Text()了，因为复杂笔记内，保留原格式总出问题，简单的去格式只刷背景色才有效
 	;背景色黄色
-	MButton::SendInput, ^+h		;中键标注，用来阅读文章时批注很方便
 	!1::evernoteEditText("<div style='background: #FFFAA5;'>", "</div>")
 	;背景色蓝色
 	!2::evernoteEditText("<div style='background: #ADD8E6;'>", "</div>")		;不要蓝色#ADD8E6
@@ -450,6 +537,37 @@ TrayTip
 		Send, (%Clipboard%)
 		return
 	}
+	
+	;双击右键，高亮，和Firefox习惯一样
+	{
+		;在Up时判断：和上次Up间隔短则高亮；否则，和上次Down间隔短则弹出右键；都不是说明是鼠标手势则忽略
+		UpStartTime := A_TickCount	;初始化
+		RButton::			;在按下时触发
+			DownStartTime := A_TickCount
+			return
+			 
+		$RButton up::		;在弹起时触发
+			DownTime := A_TickCount - DownStartTime
+			UpTime := A_TickCount - UpStartTime
+			UpStartTime := A_TickCount
+			if (UpTime < 1000 && UpTime > 100)
+			{
+				SendInput, ^+h		;高亮
+			} 
+			else if (DownTime < 300)
+			{
+				backup := clipboard
+				clipboard = 
+				Send, ^c
+				clipboard = %clipboard%
+				Sleep, 50
+				if (clipboard = "") {
+					SendInput, {RButton Down}{RButton Up}
+				}
+				clipboard := backup
+			}
+			return
+	}
 }
 
 ;-------------------------------------------------------------------------------
@@ -485,7 +603,7 @@ TrayTip
 	{
 		clipboard =
 		clipboard := ActiveFolderPath("")
-		ClipWait, ,
+		ClipWait, 1
 		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /L="%Clipboard%"
 		return
 	}
@@ -495,7 +613,7 @@ TrayTip
 	{
 		clipboard =
 		clipboard := ActiveFolderPath("")
-		ClipWait, ,
+		ClipWait, 1
 		StringReplace, clipboard, clipboard, :
 		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /L="d:\TechnicalSupport\Sandbox\LiLong\UnstableSoftware\drive\%Clipboard%"
 		return
@@ -726,10 +844,11 @@ TrayTip
 	F2::Send, ^{Tab}	;切换到后一标签
 	F3::Send, ^!b		;配合diigo的侧边栏
 	$`::Send, ^w		;关闭当前标签
-	` & 1::Send, ^+t	;撤销关闭标签
 	~^`::Send, ^`		;恢复Ditto本来功能
 	!`::Send, ``		;恢复本来的`功能
 	^b::Send, ^t^v{Enter}		;快捷打开复制的网址
+	
+	` & 1::SendInput, console.log();{Left}{Left}
 	
 	;某些网页，单击win造成的双击ctrl，会触发js，导致win+a印象笔记摘录失效，所以这里屏蔽一下，改成单击ctrl
 	~LWin:: SendInput, {LControl}
@@ -743,7 +862,7 @@ TrayTip
 		SendInput, ^a
 		Sleep, 100
 		SendInput, ^c
-		ClipWait  ; 等待剪贴板中出现文本.
+		ClipWait, 1	; 等待剪贴板中出现文本.
 		backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
 		clipboard := RegExReplace(clipboard, "szdnet.org.cn/views/specific/2929", "duxiu.com")  
 		SendInput, ^v{Enter}
@@ -785,6 +904,8 @@ TrayTip
 	;	if text=
 	;		
 	;	return 
+	
+	~LButton & q::MsgBox % GetProcessMemory_All("firefox.exe")
 }
 
 ;-------------------------------------------------------------------------------
@@ -818,6 +939,8 @@ TrayTip
 		
 		!F1::SendInput, !s
 	}
+	
+	~LButton & q::MsgBox % GetProcessMemory_All("chrome.exe")
 }
 
 ;-------------------------------------------------------------------------------
@@ -964,6 +1087,23 @@ TrayTip
 			}
 		return
 	
+}
+
+;-------------------------------------------------------------------------------
+;~ ultraEdit
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_exe uedit32.exe
+{
+	F1::
+		SendInput, ^v
+		;Sleep, 500
+		SendInput, {Alt}
+		;Sleep, 300
+		SendInput, {Shift}
+		SendInput, vvv{Right}{Down}{Down}{Down}{Down}{Down}{Enter}
+		SendInput, ^a
+		SendInput, ^!{PgDn}
+		return
 }
 
 ;-------------------------------------------------------------------------------
