@@ -7,6 +7,7 @@
 #Include %A_LineFile%\..\..\Library\WinClipAPI.ahk
 #Include %A_LineFile%\..\..\Library\WinClip.ahk
 ;#Include %A_LineFile%\..\..\Library\url_encode_decode.ahk	;该脚本必须以ANSI运行
+#Include %A_LineFile%\..\..\Library\ST.ahk
 
 SetTitleMatchMode Regex	;更改进程匹配模式为正则
 #SingleInstance ignore	;决定当脚本已经运行时是否允许它再次运行。
@@ -94,19 +95,32 @@ TrayTip
 		;BlockInput Off
 		Return
 	}
-	
+		
 	;evernote不保留原格式，增强函数
 	evernoteEditText(eFoward, eEnd)
 	{
 		clipboard =
-		Send ^c
+		SendInput, ^x
+		SendInput, {Space}{Left}	;为了适应v5.9.7的div换行+复制到行尾时的例外情况，被迫用了这么buggy的方法……
 		ClipWait, 1
 		t := WinClip.GetText()
-		html = %eFoward%%t%%eEnd%
+		;if (i = 0)
+			html = %eFoward%%t%%eEnd%
+		;i := st_count(html, "`r")
 		WinClip.Clear()
 		WinClip.SetHTML(html)
-		Sleep, 300
-		Send ^v
+		;MsgBox %Clipboard%
+		Sleep, 50
+		SendInput, ^v
+		Return
+	}
+	
+	;evernote不保留原格式，增强函数，删除div造成的独立block换行
+	evernoteEditText_DelSpc(eFoward, eEnd)
+	{
+		evernoteEditText(eFoward, eEnd)
+		SendInput, {Home}{BS}{End}{Del}
+		;SendInput, {Del}	;
 		Return
 	}
 	
@@ -457,26 +471,30 @@ TrayTip
 	;evernote从v8.9.0起，编辑器大幅改变，造成以下代码产生bug，粘贴后出现顽固多余空格，div强制换行等等
 	;故暂时不要升级，留在v5.8.12
 	;http://update.evernote.com/public/ENWin5/ReleaseNotes_5.9.6.9494_en-us.html
+	;==> 必须要升级了，粘贴带inline css的rtf block时，旧版本会造成FC，只能升级。by20160219
+
+	;注意格式化多行时，\n会被吃掉，以后要用时用st.ahk库改下，现在用不上
+	
 	;字体红色
-	#1::evernoteEditText("<div style='color: #F02E37;'><b>", "</b></div>")
+	#1::evernoteEditText_DelSpc("<div style='color: #F02E37;'><b>", "</b></div>")
 	;字体绿色
-	#4::evernoteEditText("<div style='color: #0F820F;'>", "</div>")
+	#4::evernoteEditText_DelSpc("<div style='color: #0F820F;'>", "</div>")
 	;字体灰色
-	#3::evernoteEditText("<div style='color: #D6D6D6;'>", "</div>")
+	#3::evernoteEditText_DelSpc("<div style='color: #D6D6D6;'>", "</div>")
 	;字体蓝色
-	#2::evernoteEditText("<div style='color: #3740E6;'><b>", "</b></div>")
+	#2::evernoteEditText_DelSpc("<div style='color: #3740E6;'><b>", "</b></div>")
 	;字体白色（选中可见）
-	Numpad0 & w::evernoteEditText("↓反白可见<div style='color: white;'>", "</div>&nbsp;&nbsp;↑")
+	Numpad0 & w::evernoteEditText("&nbsp;&nbsp;↓反白可见<div style='color: white;'>", "</div>&nbsp;&nbsp;↑")
 	
 	;20160206 迫不得已将bg色全换成Text()了，因为复杂笔记内，保留原格式总出问题，简单的去格式只刷背景色才有效
 	;背景色黄色
-	!1::evernoteEditText("<div style='background: #FFFAA5;'>", "</div>")
+	!1::evernoteEditText_DelSpc("<div><span style='background: #FFFAA5;'>", "</span></div>")
 	;背景色蓝色
-	!2::evernoteEditText("<div style='background: #ADD8E6;'>", "</div>")		;不要蓝色#ADD8E6
+	!2::evernoteEditText_DelSpc("<div><span style='background: #ADD8E6;'>", "</span></div>")		;不要蓝色#ADD8E6
 	;背景色灰色
-	!3::evernoteEditText("<div style='background: #D3D3D3;'>", "</div>")
+	!3::evernoteEditText_DelSpc("<div><span style='background: #D3D3D3;'>", "</span></div>")
 	;背景色绿色
-	!4::evernoteEditText("<span style='background: #90EE90;'>", "</span>")		;原颜色#FFD796
+	!4::evernoteEditText_DelSpc("<div><span style='background: #90EE90;'>", "</span></div>")		;原颜色#FFD796
 	;方框环绕
 	!f::evernoteEdit("<div style='margin-top: 5px; margin-bottom: 9px; word-wrap: break-word; padding: 8.5px; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: rgb(245, 245, 245); border: 1px solid rgba(0, 0, 0, 0.148438)'>", "</div></br>")
 	;超级标题
@@ -486,7 +504,7 @@ TrayTip
 	;底色标题
 	;!t::evernoteEditText("<div><div style='padding:0px 5px; margin:3px 0px; display:inline-block; color:rgb(255, 255, 255); text-align:center; border-top-left-radius:5px; border-top-right-radius:5px; border-bottom-right-radius:5px; border-bottom-left-radius:5px; background-color:#E2A55C;'>", "<br/></div><br/></div><br/>")
 	;引用
-	!y::evernoteEdit("<div style='margin:0.8em 0px; line-height:1.5em; color:rgb(170, 170, 170); border-left-width:5px; border-left-style:solid; border-left-color:rgb(127, 192, 66); padding-left:1.5em; '>", "</div>")
+	!y::evernoteEdit("<div style='margin:0.8em 0px; line-height:1.5em; border-left-width:5px; border-left-style:solid; border-left-color:rgb(127, 192, 66); padding-left:1.5em; '>", "</div>")
 	/* 需要其它样式，在这里增加 
 	*/	
 	
@@ -501,9 +519,6 @@ TrayTip
 	#F4::evernoteEditText("<div style='color: #E1BC29;'>", "</div>")
 	;字体紫色
 	#F5::evernoteEditText("<div style='color: #C200FB;'>", "</div>")
-	
-	
-	
 	
 	
 	;显示回收站
