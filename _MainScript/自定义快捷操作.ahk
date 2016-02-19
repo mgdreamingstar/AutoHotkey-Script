@@ -100,30 +100,17 @@ TrayTip
 	evernoteEditText(eFoward, eEnd)
 	{
 		clipboard =
-		SendInput, ^x
-		SendInput, {Space}{Left}	;为了适应v5.9.7的div换行+复制到行尾时的例外情况，被迫用了这么buggy的方法……
+		SendInput, ^c
 		ClipWait, 1
 		t := WinClip.GetText()
-		;if (i = 0)
-			html = %eFoward%%t%%eEnd%
-		;i := st_count(html, "`r")
+		html = %eFoward%%t%%eEnd%
 		WinClip.Clear()
 		WinClip.SetHTML(html)
-		;MsgBox %Clipboard%
 		Sleep, 50
 		SendInput, ^v
 		Return
 	}
-	
-	;evernote不保留原格式，增强函数，删除div造成的独立block换行
-	evernoteEditText_DelSpc(eFoward, eEnd)
-	{
-		evernoteEditText(eFoward, eEnd)
-		SendInput, {Home}{BS}{End}{Del}
-		;SendInput, {Del}	;
-		Return
-	}
-	
+		
 	;evernote无原文本的插入html增强函数
 	evernoteInsertHTML(html)
 	{
@@ -450,51 +437,112 @@ TrayTip
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_class (ENSingleNoteView|ENMainFrame)
 {
-	;en的搜索不支持特殊字符，特快捷输入这些国际字母，以变相支持特殊字符
-	` & 1::SendInput, {U+0069}{U+006E}{U+0074}{U+0069}{U+0074}{U+006C}{U+0065}{U+003A}		;输入intitle:，为了避免输入法影响，用unicode输入
-	` & 2::SendInput, Δ{Space}
-	` & 3::SendInput, Ø{Space}
-	` & d::SendInput, ^;			;快速插入日期时间
-	Tab & q::evernoteInsertHTML("<span style='color: #e97d23'>[]</span>")			;之前颜色#355986
-	;Tab & q::SendInput, {U+005B}{U+005D}
-	Tab & w::SendInput, √
-	Tab & e::SendInput, ×
-	Tab & r::SendInput, ●
-	Tab & t::SendInput, ○
-	$`::SendInput, ``
-	+`::SendInput, ~{Shift}
-	~^`::SendInput, ^`
-	
-	F3::SendInput, ^!t			;批量打标签
-	
+	{
+		;en的搜索不支持特殊字符，特快捷输入这些国际字母，以变相支持特殊字符
+		` & 1::SendInput, {U+0069}{U+006E}{U+0074}{U+0069}{U+0074}{U+006C}{U+0065}{U+003A}		;输入intitle:，为了避免输入法影响，用unicode输入
+		` & 2::SendInput, Δ{Space}
+		` & 3::SendInput, Ø{Space}
+		` & d::SendInput, ^;			;快速插入日期时间
+		Tab & q::evernoteInsertHTML("<span style='color: #e97d23'>[]</span>")			;之前颜色#355986
+		;Tab & q::SendInput, {U+005B}{U+005D}
+		Tab & w::SendInput, √
+		Tab & e::SendInput, ×
+		Tab & r::SendInput, ●
+		Tab & t::SendInput, ○
+		$`::SendInput, ``
+		+`::SendInput, ~{Shift}
+		~^`::SendInput, ^`
+		
+		F3::SendInput, ^!t			;批量打标签
+	}
 	
 	;evernote从v8.9.0起，编辑器大幅改变，造成以下代码产生bug，粘贴后出现顽固多余空格，div强制换行等等
 	;故暂时不要升级，留在v5.8.12
 	;http://update.evernote.com/public/ENWin5/ReleaseNotes_5.9.6.9494_en-us.html
 	;==> 必须要升级了，粘贴带inline css的rtf block时，旧版本会造成FC，只能升级。by20160219
-
-	;注意格式化多行时，\n会被吃掉，以后要用时用st.ahk库改下，现在用不上
 	
+	;适应en新版本的函数
+	evernoteEditTextMulti(eFoward, eEnd)
+	{
+		WinClip.Copy()
+		WinClip._waitClipReady(1000)	;复制或粘贴完后，用这个来保证程序已响应命令
+		content := WinClip.GetText()
+
+		;MsgBox % st_count(content, "`n")
+		;MsgBox % st_count(content, "`r")
+		;MsgBox % st_readLine(content, 1)
+		;MsgBox % st_readLine(content, 2)
+		
+		;为剔除新版en多此一举加入的空格
+		SendInput, {BS}
+		SendInput, +{Home}
+		WinClip.Copy()
+		WinClip._waitClipReady(1000)
+		SendInput, {BS}
+		frontContent := WinClip.GetHtml3()
+		
+		lineAmount := st_count(content, "`n")
+		;MsgBox % lineAmount
+		html = 
+		if (lineAmount = 0)	{	;单行，直接span
+			firstLine := eFoward st_readLine(content, 1) eEnd
+			;MsgBox % firstLine
+			WinClip.Clear()
+			WinClip.SetHTML(firstLine)
+			Sleep, 50
+			SendInput, ^v
+			WinClip._waitClipReady(1000)
+			SendInput {Home}
+			WinClip.Clear()
+			WinClip.SetHtml(frontContent)
+			Sleep, 50
+			SendInput, ^v
+		}
+		else if (lineAmount = 2) {		;两行，加个<br>
+			firstLineText := st_readLine(content, 1)
+			lastLineText := st_readLine(content, lineAmount)
+			html := eFoward firstLineText eEnd "<br />" eFoward lastLineText eEnd
+		}
+		else { 				;两行以上的多行，头尾两行不动，中间行加div
+			i := 2
+			while i != lineAmount
+			{
+				lineText := st_readLine(content, i++)
+				html := html "<div>" eFoward lineText eEnd "</div>"
+			}
+			firstLineText := st_readLine(content, 1)
+			lastLineText := st_readLine(content, lineAmount)
+			html := eFoward firstLineText eEnd html eFoward lastLineText eEnd
+		}
+		;MsgBox % html
+		
+		;WinClip.Clear()
+		;WinClip.SetHTML(html)
+		Sleep, 50
+		;SendInput, ^v
+		Return
+	}
+
 	;字体红色
-	#1::evernoteEditText_DelSpc("<div style='color: #F02E37;'><b>", "</b></div>")
+	#1::evernoteEditTextMulti("<span style='color: #F02E37;'><b>", "</b></span>")
 	;字体绿色
-	#4::evernoteEditText_DelSpc("<div style='color: #0F820F;'>", "</div>")
+	#4::evernoteEditTextMulti("<span style='color: #0F820F;'>", "</span>")
 	;字体灰色
-	#3::evernoteEditText_DelSpc("<div style='color: #D6D6D6;'>", "</div>")
+	#3::evernoteEditTextMulti("<span style='color: #D6D6D6;'>", "</span>")
 	;字体蓝色
-	#2::evernoteEditText_DelSpc("<div style='color: #3740E6;'><b>", "</b></div>")
+	#2::evernoteEditTextMulti("<span style='color: #3740E6;'><b>", "</b></span>")
 	;字体白色（选中可见）
 	Numpad0 & w::evernoteEditText("&nbsp;&nbsp;↓反白可见<div style='color: white;'>", "</div>&nbsp;&nbsp;↑")
 	
 	;20160206 迫不得已将bg色全换成Text()了，因为复杂笔记内，保留原格式总出问题，简单的去格式只刷背景色才有效
 	;背景色黄色
-	!1::evernoteEditText_DelSpc("<div><span style='background: #FFFAA5;'>", "</span></div>")
+	!1::evernoteEditTextMulti("<span style='background: #FFFAA5;'>", "</span>")
 	;背景色蓝色
-	!2::evernoteEditText_DelSpc("<div><span style='background: #ADD8E6;'>", "</span></div>")		;不要蓝色#ADD8E6
+	!2::evernoteEditTextMulti("<span style='background: #ADD8E6;'>", "</span>")		;不要蓝色#ADD8E6
 	;背景色灰色
-	!3::evernoteEditText_DelSpc("<div><span style='background: #D3D3D3;'>", "</span></div>")
+	!3::evernoteEditTextMulti("<span style='background: #D3D3D3;'>", "</span>")
 	;背景色绿色
-	!4::evernoteEditText_DelSpc("<div><span style='background: #90EE90;'>", "</span></div>")		;原颜色#FFD796
+	!4::evernoteEditTextMulti("<span style='background: #90EE90;'>", "</span>")		;原颜色#FFD796
 	;方框环绕
 	!f::evernoteEdit("<div style='margin-top: 5px; margin-bottom: 9px; word-wrap: break-word; padding: 8.5px; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: rgb(245, 245, 245); border: 1px solid rgba(0, 0, 0, 0.148438)'>", "</div></br>")
 	;超级标题
