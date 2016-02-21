@@ -275,6 +275,7 @@ TrayTip
 		#s::
 			Run sx
 			Run pp
+			Run ABBYY Screenshot Reader
 			return
 		;录制gif
 		#!s::
@@ -802,36 +803,44 @@ TrayTip
 	!4::changebg(255, 138, 128)				;暖红	#FF8A80，
 	!5::changebg(185, 192, 199)				;灰		#B9C0C7，最不重要，说明
 	;!`::changebg(255, 255, 115)			;黄		#FFFF73，普通批注，acrobat默认，不必设快捷键
-	;按住右键，点左键，则普通批注
-	MButton::SendInput, {AppsKey}H
 	;备用色
 	;!1::changebg(205, 164, 133)				;驼色#CDA485，
 	
-
-	;^右键 作为开关，控制右键取词模式，是否打开
+	;统一高亮firefox、evernote和pdf的快捷键，都是双击右键高亮
+	RButton::
 	{
-		flag := 0
-		^RButton:: flag += 1
-		
-		#If Mod(flag, 2)
-		;选中单词后，按鼠标右键，自动取词
-		$RButton::
-			SendInput, {RButton}y
-			Sleep, 200
-			Send {BackSpace}
-			
-			timeNow:=A_TickCount
-			while(A_TickCount - timeNow < 500) 			;等1秒钟，
+		++CountStp
+		;循环计时器，每500秒执行一次T0子程序。首次运行时，会先等待指定时间，就靠这个特性来一键多用
+		SetTimer,T0,400 
+		Return
+
+		T0:
+			SetTimer,T0,Off
+			if CountStp = 1 ;只按一次时执行
+				SendInput, {RButton}
+			if CountStp = 2 ;按两次时...
+				SendInput, {AppsKey}H
+			CountStp := 0 ;最后把记录的变量设置为0,于下次记录.
+		Return
+	}
+	
+	;中键，配合有道取词
+	MButton::
+	{
+		SendInput, ^c
+		Sleep, 200
+		Send {BackSpace}
+		;为了处理acrobat可能弹出的报错框
+		timeNow:=A_TickCount
+		while(A_TickCount - timeNow < 500) 			;等1秒钟，
+		{
+			IfWinExist, ahk_class #32770				;期间出现ahk_class #32770的弹窗
 			{
-				IfWinExist, ahk_class #32770				;期间出现ahk_class #32770的弹窗
-				{
-					;WinActivate  ; 自动使用上面找到的窗口.
-					Send, {Space}
-					return
-				}
-			}	
+				Send, {Space}
+				return
+			}
+		}
 		return
-		#If	;关闭上下文指定	
 	}
 }
 
