@@ -487,7 +487,7 @@ TrayTip
 	;底色标题
 	;!t::evernoteEditText("<div><div style='padding:0px 5px; margin:3px 0px; display:inline-block; color:rgb(255, 255, 255); text-align:center; border-top-left-radius:5px; border-top-right-radius:5px; border-bottom-right-radius:5px; border-bottom-left-radius:5px; background-color:#E2A55C;'>", "<br/></div><br/></div><br/>")
 	;引用
-	!y::evernoteEdit("<div style='margin:0.8em 0px; line-height:1.5em; color:rgb(170, 170, 170); border-left-width:5px; border-left-style:solid; border-left-color:rgb(127, 192, 66); padding-left:1.5em; '>", "</div>")
+	!y::evernoteEdit("<div style='margin:0.8em 0px; line-height:1.5em; border-left-width:5px; border-left-style:solid; border-left-color:rgb(127, 192, 66); padding-left:1.5em; '>", "</div>")
 	/* 需要其它样式，在这里增加 
 	*/	
 	
@@ -820,6 +820,15 @@ TrayTip
 				SendInput, {RButton}
 			if CountStp = 2 ;按两次时...
 				SendInput, {AppsKey}H
+			if (CountStp = 3) {
+				SendInput, {RButton}P
+				;等待窗口出现 高亮属性
+				WinWait, 高亮属性, , 5
+				WinActivate
+				IfWinActive, 高亮属性
+					SendInput, {Enter}{Down}{Down}{Down}{Down}{Right}{Right}{Right}{Right}{Right}{Enter}{Tab}{Tab}{Tab}{Tab}{Tab}{Enter}
+			}
+			
 			CountStp := 0 ;最后把记录的变量设置为0,于下次记录.
 		Return
 	}
@@ -976,6 +985,13 @@ TrayTip
 	;!F3::SendL("@todo: ")
 	;Go To Matching Pair
 	Numpad0 & j::SendInput ^!+j
+	
+	;更新evernote笔记
+	F9::
+		SendInput, ^+p
+		sendL("evernote update")
+		SendInput, {Enter}
+		return
 }
 
 ;-------------------------------------------------------------------------------
