@@ -44,6 +44,24 @@ TrayTip
 ;~ 函数部分
 ;-------------------------------------------------------------------------------
 {
+	;判断当前是否为输入状态，比A_CaretX可靠性更好
+	IME_GET(WinTitle="A")  {
+		ControlGet,hwnd,HWND,,,%WinTitle%
+		if  (WinActive(WinTitle))   {
+			ptrSize := !A_PtrSize ? 4 : A_PtrSize
+			VarSetCapacity(stGTI, cbSize:=4+4+(PtrSize*6)+16, 0)
+			NumPut(cbSize, stGTI,  0, "UInt")   ;   DWORD   cbSize;
+			hwnd := DllCall("GetGUIThreadInfo", Uint,0, Uint,&stGTI)
+					 ? NumGet(stGTI,8+PtrSize,"UInt") : hwnd
+		}
+		return DllCall("SendMessage"
+			, UInt, DllCall("imm32\ImmGetDefaultIMEWnd", Uint,hwnd)
+			, UInt, 0x0283  ;Message : WM_IME_CONTROL
+			,  Int, 0x0005  ;wParam  : IMC_GETOPENSTATUS
+			,  Int, 0)      ;lParam  : 0
+}	
+	
+	;打开超链接
 	openLink(before, after) {
 		clipboard = 
 		Send, ^c
@@ -861,7 +879,14 @@ TrayTip
 	F1::Send, ^+{Tab}	;切换到前一标签
 	F2::Send, ^{Tab}	;切换到后一标签
 	F3::Send, ^!b		;配合diigo的侧边栏
-	$`::Send, ^w		;关闭当前标签
+	;用AutoHotkey绑定`和关闭标签，容易写代码时误关闭，改为用ff脚本KeyChanger做。
+	;但KeyChanger在空白tab和Google上又自动进入输入焦点，还是回到ahk。判断下当前是否输入状态吧
+	$`::
+		if not IME_GET()
+			Send, ^w		;关闭当前标签
+		Else
+			SendInput, ``
+		return
 	~^`::Send, ^`		;恢复Ditto本来功能
 	!`::Send, ``		;恢复本来的`功能
 	^b::Send, ^t^v{Enter}		;快捷打开复制的网址
