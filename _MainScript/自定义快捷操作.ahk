@@ -335,6 +335,9 @@ TrayTip
 		:*:q@\::
 			sendL("1755381995@qq.com")
 			return
+		:*:js::
+			sendL("JavaScript")
+			return
 		::ahk::AutoHotkey
 		:*:yjt\:: ⇒{Space}					;	右箭头
 		Tab & s:: Send, ▶{Space}			;	右三角
@@ -352,7 +355,33 @@ TrayTip
 		Tab & 9:: Send, ❾{Space}
 		Tab & 0:: Send, ❿{Space}
 		;Tab & g:: Send, √{Space}
+		
+		;鼠标移动到任务栏，滚动中键，则调节音量。但效果不理想，和搜狗输入法冲突，会输入'b'和'c'，且有难听的声音提示。换用独立工具Volumouse了
+		/*#If MouseIsOver("ahk_class Shell_TrayWnd")
+		
+		WheelUp::
+		Send {Volume_Up}
+		SoundPlay *-1
+		return
 
+		WheelDown::
+		Send {Volume_Down}
+		SoundPlay *-1
+		return
+
+		MButton::
+		Send {Volume_Mute}
+		SoundPlay *-1
+		return
+
+		MouseIsOver(WinTitle) {
+			MouseGetPos,,, Win
+			return WinExist(WinTitle . " ahk_id " . Win)
+		}
+		
+		#If
+		*/
+		
 		::sof::stackoverflow
 		
 		~LButton & s::Suspend
@@ -479,7 +508,7 @@ TrayTip
 	;字体红色
 	#1::evernoteEditText("<div style='color: #F02E37;'><b>", "</b></div>")
 	;字体绿色
-	#4::evernoteEditText("<div style='color: #0F820F;'>", "</div>")
+	#4::evernoteEditText("<div style='color: #0F820F;'><b>", "</b></div>")
 	;字体灰色
 	#3::evernoteEditText("<div style='color: #D6D6D6;'>", "</div>")
 	;字体蓝色
