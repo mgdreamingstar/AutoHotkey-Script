@@ -68,6 +68,24 @@ TrayTip
 		ClipWait, 1  ; 等待剪贴板中出现文本.
 		backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
 		clipboard = %before%%clipboard%%after%
+		/*WinActivate, ahk_class MozillaWindowClass
+		SendInput, ^t
+		Sleep, 1
+		SendInput, ^v{Enter}
+		*/
+		Run, %clipboard%
+		Sleep, 500	;这里必须加个延迟，否则下一行太快执行
+		clipboard = %backup%
+		return
+	}
+	
+	;打开伪链接
+	openFakeLink(before, after) {
+		clipboard = 
+		Send, ^c
+		ClipWait, 1  ; 等待剪贴板中出现文本.
+		backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
+		clipboard = %before%%clipboard%%after%
 		WinActivate, ahk_class MozillaWindowClass
 		SendInput, ^t
 		Sleep, 1
@@ -273,6 +291,7 @@ TrayTip
 		;配合Listary快速启动
 		#r::SendInput, ^!+r
 		#c::Run "d:\TechnicalSupport\ProgramFiles\babun-1.2.0\.babun\babun.bat"
+		!#c::Run, "C:\Windows\System32\cmd.exe"
 		;注意主profile不要加--no-remote，否则evernote等打开链接时，会报错「已经运行，没有响应」云云。这里不必装安装版
 		#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\UseFirefox\firefox\firefox.exe"
 		!#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\UseFirefox\firefox\firefox.exe" --no-remote
@@ -286,19 +305,18 @@ TrayTip
 		#e::Run "D:\TechnicalSupport\ProgramFiles\Evernote\Evernote\Evernote.exe"
 		#y::Run "d:\TechnicalSupport\ProgramFiles\YodaoDict\YodaoDict.exe"
 		#m::Run resmon
-		#!c::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\ColorPic 4.1  屏幕取色小插件 颜色 色彩 配色\#ColorPic.exe"
+		^#c::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\ColorPic 4.1  屏幕取色小插件 颜色 色彩 配色\#ColorPic.exe"
 		^#s::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\#Fast Run\st.lnk"
 		>!m::Run, "C:\Users\LL\AppData\Roaming\Spotify\Spotify.exe"
-		>^>!m::Run, "D:\BaiduYun\Technical Backup\ProgramFiles\Spotify 客户端去广告工具\EZBlocker.exe"
 		#s::
 			Run sx
 			Run pp
-			Run ABBYY Screenshot Reader
+			;Run ABBYY Screenshot Reader
 			return
 		;录制gif
 		#!s::
 			Run "d:\BaiduYun\Technical Backup\ProgramFiles\keycastow 显示击键按键，录制屏幕时很有用\keycastow.exe"
-			Run "d:\BaiduYun\Technical Backup\ProgramFiles\#Repository\ScreenToGif 1.4.1 屏幕录制gif\$$ScreenToGif - Preview 9 屏幕录制gif.exe"
+			Run "d:\BaiduYun\Technical Backup\ProgramFiles\#Repository\ScreenToGif 1.4.1 屏幕录制gif\$$ScreenToGif - Preview 11 屏幕录制gif.exe"
 			return
 		#t::
 			if WinExist("ahk_class TTOTAL_CMD") {
@@ -317,8 +335,10 @@ TrayTip
 
 	;快捷输入
 	{
-		:*:b\::bootislands
-		:*:bo\::bootislands
+		:*:b\::
+		:*:bo\::
+			sendL("bootislands")
+			return
 		;放弃unicode难读的方式，用sendL()，来避免触发输入法
 		:*:b@\::
 			sendL("bootislands@163.com")
@@ -335,7 +355,7 @@ TrayTip
 		:*:q@\::
 			sendL("1755381995@qq.com")
 			return
-		:*:js::
+		:*:js\::
 			sendL("JavaScript")
 			return
 		::ahk::AutoHotkey
@@ -384,10 +404,17 @@ TrayTip
 		
 		::sof::stackoverflow
 		
+	}
+	
+	;简单映射型 快捷键
+	{
 		~LButton & s::Suspend
 		~LButton & r::Reload
 		~LButton & p::Pause
-
+		
+		;配合Actual Window Manager做虚拟桌面切换
+		#F1::SendInput, !#{F1}
+		#F2::SendInput, !#{F2}
 
 		;输入 不可见&宽度0 的字符
 		Tab & Space:: SendInput, {U+2067}{U+2068}{U+2069}{U+206A}{U+206B}{U+206C}
@@ -402,81 +429,83 @@ TrayTip
 		Tab & b:: SendInput, {Shift}Title{U+003A}{Space}{Enter}Tags{U+003A}{Space}标签1{U+002C}{Space}标签2{Enter}Status{U+003A}{Space}draft{U+002F}public{Enter}URL{U+003A} this-is-my-first-post
 	}
 	
-	/*Tab & o::
-		Loop, 39
+	;复杂型 快捷键
+	{
+		/*Tab & o::
+			Loop, 39
+			{
+				SendInput, {Tab}{Space}
+				Sleep, 1500
+				SendInput, {Tab}{Tab}{Space}
+				Sleep, 1500
+				SendInput, {Tab}{Tab}{Space}
+				Sleep, 1500
+				SendInput, {Tab}{Space}
+				Sleep, 1500
+			}	
+			return
+		*/
+		
+		;豆瓣book搜索
+		Numpad0 & d::openLink("http://book.douban.com/subject_search?search_text=", "&cat=1001")
+		;豆瓣music搜索
+		Numpad0 & m::openLink("http://music.douban.com/subject_search?search_text=", "&cat=1001")
+		;谷歌搜索
+		Numpad0 & g::openLink("https://www.google.com/search?newwindow=1&site=&source=hp&q=", "&=&=&oq=&gs_l=")
+		;快速查词典
+		Numpad0 & c::openLink("http://dict.youdao.com/search?q=", "")
+		
+		;双击esc退出焦点程序
+		~Esc::
+			if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500) 
+				Send, !{F4}
+			return
+
+		;配合snagit，单击prtsc截屏；双击prtsc5秒延迟截屏
 		{
-			SendInput, {Tab}{Space}
-			Sleep, 1500
-			SendInput, {Tab}{Tab}{Space}
-			Sleep, 1500
-			SendInput, {Tab}{Tab}{Space}
-			Sleep, 1500
-			SendInput, {Tab}{Space}
-			Sleep, 1500
-		}	
-		return
-	*/
-	
-	;豆瓣book搜索
-	Numpad0 & d::openLink("http://book.douban.com/subject_search?search_text=", "&cat=1001")
-	;豆瓣music搜索
-	Numpad0 & m::openLink("http://music.douban.com/subject_search?search_text=", "&cat=1001")
-	;谷歌搜索
-	Numpad0 & g::openLink("https://www.google.com/search?newwindow=1&site=&source=hp&q=", "&=&=&oq=&gs_l=")
-	;快速查词典
-	Numpad0 & c::openLink("http://dict.youdao.com/search?q=", "")
-	
-	;双击esc退出焦点程序
-	~Esc::
-		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500) 
-			Send, !{F4}
-		return
+			$PrintScreen::
+				CountStp := ++CountStp
+				SetTimer, TimerPrtSc, 500
+				Return
+			TimerPrtSc:
+				if CountStp > 1 ;大于1时关闭计时器
+					SetTimer, TimerPrtSc, Off
+				if CountStp = 1 ;只按一次时执行
+					Send, {PrintScreen}
+				if CountStp = 2 ;按两次时...
+					Send, ^+!{PrintScreen}
+				CountStp := 0 ;最后把记录的变量设置为0,于下次记录.
+				Return
+		}
 
-	;配合snagit，单击prtsc截屏；双击prtsc5秒延迟截屏
-	{
-		$PrintScreen::
-			CountStp := ++CountStp
-			SetTimer, TimerPrtSc, 500
-			Return
-		TimerPrtSc:
-			if CountStp > 1 ;大于1时关闭计时器
-				SetTimer, TimerPrtSc, Off
-			if CountStp = 1 ;只按一次时执行
-				Send, {PrintScreen}
-			if CountStp = 2 ;按两次时...
-				Send, ^+!{PrintScreen}
-			CountStp := 0 ;最后把记录的变量设置为0,于下次记录.
-			Return
+		;恢复Tab键原本功能
+		{
+			$Tab::Send, {Tab}
+			LAlt & Tab::AltTab
+			^Tab::Send, ^{Tab}
+			^+Tab::Send, ^+{Tab}
+			+Tab::SendInput, +{Tab}
+		}
+		
+		;配合有道词典取词
+		~LWin:: Send, {LControl}{LControl}
+		
+		;配合anki收集
+		Numpad0 & s::
+		{
+			WinActivate, ahk_exe anki.exe
+			SendInput, a
+			return
+		}
+		
+		;evernote新建笔记
+		Numpad0 & a::SendInput, ^!n
+		$F4::
+			SendInput, {F4}
+			Sleep, 200
+			SendInput, {U+006E}{U+006F}{U+0074}{U+0065}{U+0062}{U+006F}{U+006F}{U+006B}{U+003A}{U+0022}{U+0031}{U+0020}{U+0020}{U+0043}{U+0061}{U+0062}{U+0069}{U+006E}{U+0065}{U+0074}{U+0022}{U+0020}
+			return
 	}
-
-	;恢复Tab键原本功能
-	{
-		$Tab::Send, {Tab}
-		LAlt & Tab::AltTab
-		^Tab::Send, ^{Tab}
-		^+Tab::Send, ^+{Tab}
-		+Tab::SendInput, +{Tab}
-	}
-	
-	;配合有道词典取词
-	~LWin:: Send, {LControl}{LControl}
-	
-	;配合anki收集
-	Numpad0 & s::
-	{
-		WinActivate, ahk_exe anki.exe
-		SendInput, a
-		return
-	}
-	
-	;evernote新建笔记
-	Numpad0 & a::SendInput, ^!n
-	$F4::
-		SendInput, {F4}
-		Sleep, 200
-		SendInput, {U+006E}{U+006F}{U+0074}{U+0065}{U+0062}{U+006F}{U+006F}{U+006B}{U+003A}{U+0022}{U+0031}{U+0020}{U+0020}{U+0043}{U+0061}{U+0062}{U+0069}{U+006E}{U+0065}{U+0074}{U+0022}{U+0020}
-		return
-
 }
 
 ;-------------------------------------------------------------------------------
@@ -514,7 +543,8 @@ TrayTip
 	;字体蓝色
 	#2::evernoteEditText("<div style='color: #3740E6;'><b>", "</b></div>")
 	;字体白色（选中可见）
-	Numpad0 & w::evernoteEditText("↓反白可见<div style='color: white;'>", "</div>&nbsp;&nbsp;↑")
+	;Numpad0 & w::evernoteEditText("↓反白可见<div style='color: white;'>", "</div>&nbsp;&nbsp;↑")
+	Numpad0 & w::evernoteEditText("反白可见【<span style='color: white;'>", "</span>】")
 	
 	;20160206 迫不得已将bg色全换成Text()了，因为复杂笔记内，保留原格式总出问题，简单的去格式只刷背景色才有效
 	;背景色黄色
@@ -538,7 +568,7 @@ TrayTip
 	/* 需要其它样式，在这里增加 
 	*/	
 	
-	;周计划专用配色
+	/*;周计划专用配色
 	;字体橙色
 	#F1::evernoteEditText("<div style='color: #0F820F;'>", "</div>")
 	;字体绿色
@@ -549,7 +579,7 @@ TrayTip
 	#F4::evernoteEditText("<div style='color: #E1BC29;'>", "</div>")
 	;字体紫色
 	#F5::evernoteEditText("<div style='color: #C200FB;'>", "</div>")
-	
+	*/
 	
 	
 	
@@ -570,7 +600,7 @@ TrayTip
 	F6::
 	{
 		SendInput, {AppsKey}x{Enter}
-		Sleep, 200
+		WinWait, ahk_class #32770
 		SendInput, {Enter}
 		return
 	}
@@ -784,6 +814,14 @@ TrayTip
 		StringReplace, clipboard, clipboard, :
 		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /S /R="d:\TechnicalSupport\Sandbox\LL\DefaultBox\drive\%Clipboard%"
 		return
+		
+	;压缩多文件为uvz：自动重命名和勾选选项
+	#F5::
+		SendInput, !{F5}{Right}{Left}{BS}{BS}{BS}
+		sendL("uvz")
+		SendInput, !n{Tab}{Tab}{Tab}{Space}
+		return
+	
 }
 
 ;-------------------------------------------------------------------------------
@@ -927,7 +965,7 @@ TrayTip
 	
 	Numpad0 & w::openLink("http://zh.wikipedia.org/w/index.php?search=", "")
 	Numpad0 & q::openLink("http://book.szdnet.org.cn/search?Field=all&channel=search&sw=", "")
-	Numpad0 & e::openLink("es ", "")		;配合Firefox，E书园搜索
+	Numpad0 & e::openFakeLink("es ", "")		;配合Firefox，E书园搜索
 	Numpad0 & r::		;E书园求书时用，文献港链接 替换成 读秀链
 	{
 		clipboard = 
@@ -1188,13 +1226,23 @@ TrayTip
 ;-------------------------------------------------------------------------------
 ;~ 桌面在最前端时，快捷键
 ;-------------------------------------------------------------------------------
-
 #IfWinActive ahk_exe explorer.exe
 {
 	;双击esc关机
 	~Esc::
 		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500) 
 			Run, "D:\BaiduYun\Technical Backup\ProgramFiles\Shutdown8  定时关机\Shutdown8 关机.exe"
+		return
+}
+
+;-------------------------------------------------------------------------------
+;~ 记事本notepad
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_exe notepad.exe
+{
+	~Esc::
+		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500) 
+			Send, !{F4}n
 		return
 }
 
