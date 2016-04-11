@@ -290,7 +290,8 @@ TrayTip
 	{
 		;配合Listary快速启动
 		#r::SendInput, ^!+r
-		#c::Run "d:\TechnicalSupport\ProgramFiles\babun-1.2.0\.babun\babun.bat"
+		;#c::Run "d:\TechnicalSupport\ProgramFiles\babun-1.2.0\.babun\babun.bat"
+		#c::Run cmd
 		!#c::Run, "C:\Windows\System32\cmd.exe"
 		;注意主profile不要加--no-remote，否则evernote等打开链接时，会报错「已经运行，没有响应」云云。这里不必装安装版
 		#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\UseFirefox\firefox\firefox.exe"
@@ -309,7 +310,7 @@ TrayTip
 		^#s::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\#Fast Run\st.lnk"
 		>!m::Run, "C:\Users\LL\AppData\Roaming\Spotify\Spotify.exe"
 		#s::
-			Run sx
+			;Run sx
 			Run pp
 			;Run ABBYY Screenshot Reader
 			return
@@ -517,7 +518,7 @@ TrayTip
 	` & 1::SendInput, {U+0069}{U+006E}{U+0074}{U+0069}{U+0074}{U+006C}{U+0065}{U+003A}		;输入intitle:，为了避免输入法影响，用unicode输入
 	` & 2::SendInput, Δ{Space}
 	` & 3::SendInput, Ø{Space}
-	` & d::SendInput, ^;			;快速插入日期时间
+	` & 4::SendInput, ^;			;快速插入日期时间
 	Tab & q::evernoteInsertHTML("<span style='color: #e97d23'>[]</span>")			;之前颜色#355986
 	;Tab & q::SendInput, {U+005B}{U+005D}
 	Tab & w::SendInput, √
@@ -530,12 +531,24 @@ TrayTip
 	
 	F3::SendInput, ^!t			;批量打标签
 	
+	/*
+	evernoteChangeColor(tabclicknum) {
+		SendInput, ^d
+		WinWait, 字体
+		SendInput, {Tab}{Tab}{Tab}{Tab}{Tab}
+		Loop %tabclicknum% {
+			SendInput, {Right}
+		}
+		SendInput, {Tab}{Enter}
+	}
+	*/
 	
 	;evernote从v8.9.0起，编辑器大幅改变，造成以下代码产生bug，粘贴后出现顽固多余空格，div强制换行等等
 	;故暂时不要升级，留在v5.8.12
 	;http://update.evernote.com/public/ENWin5/ReleaseNotes_5.9.6.9494_en-us.html
 	;字体红色
 	#1::evernoteEditText("<div style='color: #F02E37;'><b>", "</b></div>")
+	;#1::evernoteChangeColor(9)	;尝试v6中
 	;字体绿色
 	#4::evernoteEditText("<div style='color: #0F820F;'><b>", "</b></div>")
 	;字体灰色
