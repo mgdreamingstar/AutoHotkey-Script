@@ -12,6 +12,7 @@ SetTitleMatchMode Regex	;更改进程匹配模式为正则
 #SingleInstance ignore	;决定当脚本已经运行时是否允许它再次运行。
 #Persistent				;持续运行不退出
 #MaxThreadsPerHotkey 5
+CoordMode, Mouse, Client	;鼠标坐标采用Client模式
 ;SetCapsLockState,AlwaysOff
 CountStp := 0	;一键多用的计时器
 
@@ -284,7 +285,8 @@ TrayTip
 ;-------------------------------------------------------------------------------
 {	
 	;临时
-	Tab & o::	
+	Tab & o::
+	;q::SendInput, p
 
 	;常用软件快速启动
 	{
@@ -294,7 +296,7 @@ TrayTip
 		#c::Run cmd
 		!#c::Run, "C:\Windows\System32\cmd.exe"
 		;注意主profile不要加--no-remote，否则evernote等打开链接时，会报错「已经运行，没有响应」云云。这里不必装安装版
-		#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\UseFirefox\firefox\firefox.exe"
+		#f::Run "d:\TechnicalSupport\ProgramFiles\Firefox-pcxFirefox\firefox\firefox.exe"
 		!#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\UseFirefox\firefox\firefox.exe" --no-remote
 		#d::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\DevFirefox\pcxfirefox\firefox.exe" --no-remote
 		;#g::Run "d:\TechnicalSupport\ProgramFiles\GoogleChrome 便携版\MyChrome for Use\MyChrome.exe"
@@ -303,14 +305,15 @@ TrayTip
 		#z::Run "d:\TechnicalSupport\ProgramFiles\AutoHotkey\SciTE\SciTE.exe"
 		;#z::Run "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\plugins\wlx\Syn2\Syn.exe" "d:\BaiduYun\@\Software\AHKScript\_MainScript\自定义快捷操作.ahk"
 		#x::Run "C:\Program Files (x86)\Microsoft Office\root\Office16\EXCEL.EXE"
-		#e::Run "D:\TechnicalSupport\ProgramFiles\Evernote\Evernote\Evernote.exe"
+		;#e::Run "D:\TechnicalSupport\ProgramFiles\Evernote\Evernote\Evernote.exe"
+		#e::Run "C:\Program Files (x86)\Evernote\Evernote\Evernote.exe"
 		#y::Run "d:\TechnicalSupport\ProgramFiles\YodaoDict\YodaoDict.exe"
 		#m::Run resmon
 		^#c::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\ColorPic 4.1  屏幕取色小插件 颜色 色彩 配色\#ColorPic.exe"
 		^#s::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\#Fast Run\st.lnk"
 		>!m::Run, "C:\Users\LL\AppData\Roaming\Spotify\Spotify.exe"
 		#s::
-			;Run sx
+			Run sx
 			Run pp
 			;Run ABBYY Screenshot Reader
 			return
@@ -449,8 +452,8 @@ TrayTip
 		
 		;豆瓣book搜索
 		Numpad0 & d::openLink("http://book.douban.com/subject_search?search_text=", "&cat=1001")
-		;豆瓣music搜索
-		Numpad0 & m::openLink("http://music.douban.com/subject_search?search_text=", "&cat=1001")
+		;豆瓣movie搜索
+		Numpad0 & m::openLink("http://movie.douban.com/subject_search?search_text=", "&cat=1001")
 		;谷歌搜索
 		Numpad0 & g::openLink("https://www.google.com/search?newwindow=1&site=&source=hp&q=", "&=&=&oq=&gs_l=")
 		;快速查词典
@@ -510,7 +513,7 @@ TrayTip
 }
 
 ;-------------------------------------------------------------------------------
-;~ Evernote快捷键
+;~ Evernote多窗口快捷键
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_class (ENSingleNoteView|ENMainFrame)
 {
@@ -519,8 +522,8 @@ TrayTip
 	` & 2::SendInput, Δ{Space}
 	` & 3::SendInput, Ø{Space}
 	` & 4::SendInput, ^;			;快速插入日期时间
-	Tab & q::evernoteInsertHTML("<span style='color: #e97d23'>[]</span>")			;之前颜色#355986
-	;Tab & q::SendInput, {U+005B}{U+005D}
+	;Tab & q::evernoteInsertHTML("<span style='color: #e97d23'>[]</span>")			;之前颜色#355986
+	Tab & q::SendInput, {U+005B}{U+005D}
 	Tab & w::SendInput, √
 	Tab & e::SendInput, ×
 	Tab & r::SendInput, ●
@@ -529,76 +532,10 @@ TrayTip
 	+`::SendInput, ~{Shift}
 	~^`::SendInput, ^`
 	
-	F3::SendInput, ^!t			;批量打标签
-	
-	/*
-	evernoteChangeColor(tabclicknum) {
-		SendInput, ^d
-		WinWait, 字体
-		SendInput, {Tab}{Tab}{Tab}{Tab}{Tab}
-		Loop %tabclicknum% {
-			SendInput, {Right}
-		}
-		SendInput, {Tab}{Enter}
-	}
-	*/
-	
-	;evernote从v8.9.0起，编辑器大幅改变，造成以下代码产生bug，粘贴后出现顽固多余空格，div强制换行等等
-	;故暂时不要升级，留在v5.8.12
-	;http://update.evernote.com/public/ENWin5/ReleaseNotes_5.9.6.9494_en-us.html
-	;字体红色
-	#1::evernoteEditText("<div style='color: #F02E37;'><b>", "</b></div>")
-	;#1::evernoteChangeColor(9)	;尝试v6中
-	;字体绿色
-	#4::evernoteEditText("<div style='color: #0F820F;'><b>", "</b></div>")
-	;字体灰色
-	#3::evernoteEditText("<div style='color: #D6D6D6;'>", "</div>")
-	;字体蓝色
-	#2::evernoteEditText("<div style='color: #3740E6;'><b>", "</b></div>")
-	;字体白色（选中可见）
-	;Numpad0 & w::evernoteEditText("↓反白可见<div style='color: white;'>", "</div>&nbsp;&nbsp;↑")
-	Numpad0 & w::evernoteEditText("反白可见【<span style='color: white;'>", "</span>】")
-	
-	;20160206 迫不得已将bg色全换成Text()了，因为复杂笔记内，保留原格式总出问题，简单的去格式只刷背景色才有效
-	;背景色黄色
-	!1::evernoteEditText("<div style='background: #FFFAA5;'>", "</div>")
-	;背景色蓝色
-	!2::evernoteEditText("<div style='background: #ADD8E6;'>", "</div>")		;不要蓝色#ADD8E6
-	;背景色灰色
-	!3::evernoteEditText("<div style='background: #D3D3D3;'>", "</div>")
-	;背景色绿色
-	!4::evernoteEditText("<span style='background: #90EE90;'>", "</span>")		;原颜色#FFD796
-	;方框环绕
-	!f::evernoteEdit("<div style='margin-top: 5px; margin-bottom: 9px; word-wrap: break-word; padding: 8.5px; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: rgb(245, 245, 245); border: 1px solid rgba(0, 0, 0, 0.148438)'>", "</div></br>")
-	;超级标题
-	!s::evernoteEditText("<div style='margin:1px 0px; color:rgb(255, 255, 255); background-color:#8BAAD0; border-top-left-radius:5px; border-top-right-radius:5px; border-bottom-right-radius:5px; border-bottom-left-radius:5px; text-align:center;'><b>", "</b></div></br>")
-	;贯穿线
-	;^+=::evernoteInsertHTML("<div style='margin: 3px 0px; border-top-width: 2px; border-top-style: solid; border-top-color: rgb(116, 98, 67); font-size: 3px'>　</div></br>")	
-	;底色标题
-	;!t::evernoteEditText("<div><div style='padding:0px 5px; margin:3px 0px; display:inline-block; color:rgb(255, 255, 255); text-align:center; border-top-left-radius:5px; border-top-right-radius:5px; border-bottom-right-radius:5px; border-bottom-left-radius:5px; background-color:#E2A55C;'>", "<br/></div><br/></div><br/>")
-	;引用
-	!y::evernoteEdit("<div style='margin:0.8em 0px; line-height:1.5em; border-left-width:5px; border-left-style:solid; border-left-color:rgb(127, 192, 66); padding-left:1.5em; '>", "</div>")
-	/* 需要其它样式，在这里增加 
-	*/	
-	
-	/*;周计划专用配色
-	;字体橙色
-	#F1::evernoteEditText("<div style='color: #0F820F;'>", "</div>")
-	;字体绿色
-	#F2::evernoteEditText("<div style='color: #e97d23;'>", "</div>")
-	;字体蓝色
-	#F3::evernoteEditText("<div style='color: #5B85AA;'>", "</div>")
-	;字体土黄色
-	#F4::evernoteEditText("<div style='color: #E1BC29;'>", "</div>")
-	;字体紫色
-	#F5::evernoteEditText("<div style='color: #C200FB;'>", "</div>")
-	*/
-	
-	
-	
-	
-	;显示回收站
-	Numpad0 & r::SendInput !vpb
+	F1::SendInput, !oSS{Enter}		;简化格式
+	F3::SendInput, ^!t				;批量打标签
+	Numpad0 & r::SendInput !vpb		;显示回收站
+	~LButton & a::SendInput, ^!a	;切换账户
 	
 	;复制到当前笔记本
 	F5::
@@ -617,9 +554,6 @@ TrayTip
 		SendInput, {Enter}
 		return
 	}
-	
-	;简化格式
-	F1::SendInput, !oSS{Enter}
 	
 	;加括号
 	Tab & a::
@@ -659,8 +593,167 @@ TrayTip
 			}
 			return
 	}
+
+	;方框环绕
+	!f::evernoteEdit("<div style='margin-top: 5px; margin-bottom: 9px; word-wrap: break-word; padding: 8.5px; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: rgb(245, 245, 245); border: 1px solid rgba(0, 0, 0, 0.148438)'>", "</div></br>")
+	;超级标题
+	!s::evernoteEditText("<div style='margin:1px 0px; color:rgb(255, 255, 255); background-color:#8BAAD0; border-top-left-radius:5px; border-top-right-radius:5px; border-bottom-right-radius:5px; border-bottom-left-radius:5px; text-align:center;'><b>", "</b></div></br>")
+	;贯穿线
+	^+=::evernoteInsertHTML("<div style='margin: 3px 0px; border-top-width: 2px; border-top-style: solid; border-top-color: rgb(116, 98, 67); font-size: 3px'>　</div></br>")	
+	;底色标题
+	;!t::evernoteEditText("<div><div style='padding:0px 5px; margin:3px 0px; display:inline-block; color:rgb(255, 255, 255); text-align:center; border-top-left-radius:5px; border-top-right-radius:5px; border-bottom-right-radius:5px; border-bottom-left-radius:5px; background-color:#E2A55C;'>", "<br/></div><br/></div><br/>")
+	;引用
+	!y::evernoteEdit("<div style='margin:0.8em 0px; line-height:1.5em; border-left-width:5px; border-left-style:solid; border-left-color:rgb(127, 192, 66); padding-left:1.5em; '>", "</div>")
+	/* 需要其它样式，在这里增加 
+	*/	
+	
+	;-------------------------------------------------------------------------------
+	;~ v5版本
+	;-------------------------------------------------------------------------------
+	{
+		/*
+		;evernote从v8.9.0起，编辑器大幅改变，造成以下代码产生bug，粘贴后出现顽固多余空格，div强制换行等等
+		;故暂时不要升级，留在v5.8.12
+		;http://update.evernote.com/public/ENWin5/ReleaseNotes_5.9.6.9494_en-us.html
+		;字体红色
+		#1::evernoteEditText("<div style='color: #F02E37;'><b>", "</b></div>")
+		;字体绿色
+		#4::evernoteEditText("<div style='color: #0F820F;'><b>", "</b></div>")
+		;字体灰色
+		#3::evernoteEditText("<div style='color: #D6D6D6;'>", "</div>")
+		;字体蓝色
+		#2::evernoteEditText("<div style='color: #3740E6;'><b>", "</b></div>")
+		;字体白色（选中可见）
+		;Numpad0 & w::evernoteEditText("↓反白可见<div style='color: white;'>", "</div>&nbsp;&nbsp;↑")
+		Numpad0 & w::evernoteEditText("反白可见【<span style='color: white;'>", "</span>】")
+		
+		;20160206 迫不得已将bg色全换成Text()了，因为复杂笔记内，保留原格式总出问题，简单的去格式只刷背景色才有效
+		;背景色黄色
+		!1::evernoteEditText("<div style='background: #FFFAA5;'>", "</div>")
+		;背景色蓝色
+		!2::evernoteEditText("<div style='background: #ADD8E6;'>", "</div>")		;不要蓝色#ADD8E6
+		;背景色灰色
+		!3::evernoteEditText("<div style='background: #D3D3D3;'>", "</div>")
+		;背景色绿色
+		!4::evernoteEditText("<span style='background: #90EE90;'>", "</span>")		;原颜色#FFD796
+		
+		;周计划专用配色
+		;字体橙色
+		#F1::evernoteEditText("<div style='color: #0F820F;'>", "</div>")
+		;字体绿色
+		#F2::evernoteEditText("<div style='color: #e97d23;'>", "</div>")
+		;字体蓝色
+		#F3::evernoteEditText("<div style='color: #5B85AA;'>", "</div>")
+		;字体土黄色
+		#F4::evernoteEditText("<div style='color: #E1BC29;'>", "</div>")
+		;字体紫色
+		#F5::evernoteEditText("<div style='color: #C200FB;'>", "</div>")
+		*/
+	}
+	
+	;-------------------------------------------------------------------------------
+	;~ v6版本-快捷键实现
+	;-------------------------------------------------------------------------------
+	{
+		/*
+		evernoteChangeColor(tabclicknum) {
+			SendInput, ^d
+			WinWait, 字体
+			SendInput, {Tab}{Tab}{Tab}{Tab}{Tab}
+			Loop %tabclicknum% {
+				SendInput, {Right}
+			}
+			SendInput, {Tab}{Enter}
+		}
+		
+		;颜色变量对应表
+		/*
+		褐:=1
+		绿:=2
+		橄榄:=3
+		海军蓝:=4
+		紫:=5
+		青:=6
+		灰:=7
+		银:=8
+		红 := 9
+		酸橙:=10
+		黄:=11
+		蓝:=12
+		紫红:=13
+		水绿:=14
+		白:=15
+		*/
+		
+		/*
+		;字体红色
+		#1::
+			evernoteChangeColor(9)
+			SendInput, ^b
+			return
+		;字体蓝色
+		#2::
+			evernoteChangeColor(12)
+			SendInput, ^b
+			return
+		;字体绿色
+		#4::
+			evernoteChangeColor(2)
+			SendInput, ^b
+			return
+		;字体灰色
+		#3::
+			evernoteChangeColor(7)
+			SendInput, ^b
+			return
+
+		;字体白色（选中可见）
+		Numpad0 & w::evernoteEditText("反白可见【<span style='color: white;'>", "</span>】")
+		
+		;周计划专用配色
+		;字体紫红色
+		#F1::evernoteChangeColor(13)
+		;字体绿色
+		#F2::evernoteChangeColor(2)
+		;字体蓝色
+		#F3::evernoteChangeColor(12)
+		;字体橄榄色
+		#F4::evernoteChangeColor(3)
+		;字体青色
+		#F5::evernoteChangeColor(6)
+		*/
+	}
 }
 
+;-------------------------------------------------------------------------------
+;~ Evernote v6版本-鼠标实现
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_class ENSingleNoteView
+;严重依赖窗口视图相对位置，编辑区域中界限，设定为表格刚刚消失不见时的位置，接近于屏幕竖直中线
+{
+	evernoteMouseChangeColor(r, g, b) {
+		Click 890, 159	;点击颜色按钮
+		SendL("M")
+		return
+	}
+	
+	
+	;字体红色
+	#1::evernoteMouseChangeColor(1,2,3)
+	;字体蓝色
+	#2::
+	
+	;字体绿色
+	#4::
+		
+	;字体灰色
+	#3::
+		
+
+}
+
+#IfWinActive ahk_class ENMainFrame
+	
 ;-------------------------------------------------------------------------------
 ;~ Explorer快捷键
 ;-------------------------------------------------------------------------------
@@ -1260,6 +1353,19 @@ TrayTip
 }
 
 ;-------------------------------------------------------------------------------
+;~ 千牛，阿里旺旺卖家版
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_exe AliWorkbench.exe
+{
+	F1:: SendInput, /{U+003A}087{Right}
+	F2:: SendInput, /{U+003A}012{Right}
+	F3:: SendInput, /{U+003A}074{Right}
+	F4:: SendInput, /{U+003A}Q{Right}
+	F5:: SendInput, /{U+003A}806{Right}
+	
+}
+
+;-------------------------------------------------------------------------------
 ;~ 在"另存为""保存"等窗口，配合Listary进行快速穿越快捷键
 ;-------------------------------------------------------------------------------
 /*#IfWinActive ahk_class #32770
@@ -1267,6 +1373,87 @@ TrayTip
 	Numpad0 & a::SendInput, #o
 }
 */
+
+;-------------------------------------------------------------------------------
+;~ 游戏The Escapists快捷键
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_class Mf2MainClassTh
+{
+  ;运动健身：跑步机
+  F12::
+    Loop {
+      /*
+      前面几关
+      
+			Send, {q down}
+      Sleep, 10
+	    Send, {e down}
+      Sleep, 10
+      Send, {q up}
+      Sleep, 10
+      Send, {e up}
+      Sleep, 10
+      */
+      
+      /* 
+      丛林关卡 
+      
+      Send, {q down}
+      Send, {q up}
+      Sleep, 10
+      Send, {e down}
+      Send, {e up}
+      Sleep, 10
+      */
+      
+      /*
+      cho关卡 内置的困难关
+      
+      Send, {q down}
+      Sleep, 450
+      Send, {q up}
+      Sleep, 10
+      */
+      
+      /*
+      very hard 难度  引体向上
+      */
+      Send, {q down}
+      Sleep, 10
+      Send, {q up}
+      Sleep, 10
+      Send, {e down}
+      Sleep, 10
+      Send, {e up}
+      Sleep, 10
+		}
+    return
+  
+  Insert::Reload
+  
+  F11::
+    while(1)
+    {
+      Send, {LButton Down}
+      Sleep, 2
+      Send, {LButton up}
+      Sleep, 2
+    }
+    return
+  
+  /*
+  hard那一章，锻炼速度的
+  */
+  ^F12::
+    Loop {
+      Send, {q Down}
+      Sleep, 20
+      Send, {q Up}
+      Sleep, 933
+    }
+    
+}
+
 
 ;-------------------------------------------------------------------------------
 ;~ 自动保存
