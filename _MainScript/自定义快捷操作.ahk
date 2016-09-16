@@ -513,87 +513,90 @@ TrayTip
 }
 
 ;-------------------------------------------------------------------------------
-;~ Evernote多窗口快捷键
+;~ Evernote快捷键
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_class (ENSingleNoteView|ENMainFrame)
 {
-	;en的搜索不支持特殊字符，特快捷输入这些国际字母，以变相支持特殊字符
-	` & 1::SendInput, {U+0069}{U+006E}{U+0074}{U+0069}{U+0074}{U+006C}{U+0065}{U+003A}		;输入intitle:，为了避免输入法影响，用unicode输入
-	` & 2::SendInput, Δ{Space}
-	` & 3::SendInput, Ø{Space}
-	` & 4::SendInput, ^;			;快速插入日期时间
-	;Tab & q::evernoteInsertHTML("<span style='color: #e97d23'>[]</span>")			;之前颜色#355986
-	Tab & q::SendInput, {U+005B}{U+005D}
-	Tab & w::SendInput, √
-	Tab & e::SendInput, ×
-	Tab & r::SendInput, ●
-	Tab & t::SendInput, ○
-	$`::SendInput, ``
-	+`::SendInput, ~{Shift}
-	~^`::SendInput, ^`
-	
-	F1::SendInput, !oSS{Enter}		;简化格式
-	F3::SendInput, ^!t				;批量打标签
-	Numpad0 & r::SendInput !vpb		;显示回收站
-	~LButton & a::SendInput, ^!a	;切换账户
-	
-	;复制到当前笔记本
-	F5::
+	;快捷键: 非编辑器部分
 	{
-		SendInput, {AppsKey}c
-		Sleep, 200
-		SendInput, {Enter}
-		return
-	}
-	
-	;导出笔记
-	F6::
-	{
-		SendInput, {AppsKey}x{Enter}
-		WinWait, ahk_class #32770
-		SendInput, {Enter}
-		return
-	}
-	
-	;加括号
-	Tab & a::
-	{
-		Send, ^x
-		Send, (%Clipboard%)
-		return
-	}
-	
-	;双击右键，高亮，和Firefox习惯一样
-	{
-		;在Up时判断：和上次Up间隔短则高亮；否则，和上次Down间隔短则弹出右键；都不是说明是鼠标手势则忽略
-		UpStartTime := A_TickCount	;初始化
-		RButton::			;在按下时触发
-			DownStartTime := A_TickCount
+		;en的搜索不支持特殊字符，特快捷输入这些国际字母，以变相支持特殊字符
+		` & 1::SendInput, {U+0069}{U+006E}{U+0074}{U+0069}{U+0074}{U+006C}{U+0065}{U+003A}		;输入intitle:，为了避免输入法影响，用unicode输入
+		` & 2::SendInput, Δ{Space}
+		` & 3::SendInput, Ø{Space}
+		` & 4::SendInput, ^;			;快速插入日期时间
+		;Tab & q::evernoteInsertHTML("<span style='color: #e97d23'>[]</span>")			;之前颜色#355986
+		Tab & q::SendInput, {U+005B}{U+005D}
+		Tab & w::SendInput, √
+		Tab & e::SendInput, ×
+		Tab & r::SendInput, ●
+		Tab & t::SendInput, ○
+		$`::SendInput, ``
+		+`::SendInput, ~{Shift}
+		~^`::SendInput, ^`
+		
+		F1::SendInput, !oSS{Enter}		;简化格式
+		F3::SendInput, ^!t				;批量打标签
+		Numpad0 & r::SendInput !vpb		;显示回收站
+		~LButton & a::SendInput, ^!a	;切换账户
+		
+		;复制到当前笔记本
+		F5::
+		{
+			SendInput, {AppsKey}c
+			Sleep, 200
+			SendInput, {Enter}
 			return
-			 
-		$RButton up::		;在弹起时触发
-			DownTime := A_TickCount - DownStartTime
-			UpTime := A_TickCount - UpStartTime
-			UpStartTime := A_TickCount
-			if (UpTime < 1000 && UpTime > 100)
-			{
-				SendInput, ^+h		;高亮
-			} 
-			else if (DownTime < 300)
-			{
-				backup := clipboard
-				clipboard = 
-				Send, ^c
-				clipboard = %clipboard%
-				Sleep, 50
-				if (clipboard = "") {
-					SendInput, {RButton Down}{RButton Up}
+		}
+		
+		;导出笔记
+		F6::
+		{
+			SendInput, {AppsKey}x{Enter}
+			WinWait, ahk_class #32770
+			SendInput, {Enter}
+			return
+		}
+		
+		;加括号
+		Tab & a::
+		{
+			Send, ^x
+			Send, (%Clipboard%)
+			return
+		}
+		
+		;双击右键，高亮，和Firefox习惯一样
+		{
+			;在Up时判断：和上次Up间隔短则高亮；否则，和上次Down间隔短则弹出右键；都不是说明是鼠标手势则忽略
+			UpStartTime := A_TickCount	;初始化
+			RButton::			;在按下时触发
+				DownStartTime := A_TickCount
+				return
+				 
+			$RButton up::		;在弹起时触发
+				DownTime := A_TickCount - DownStartTime
+				UpTime := A_TickCount - UpStartTime
+				UpStartTime := A_TickCount
+				if (UpTime < 1000 && UpTime > 100)
+				{
+					SendInput, ^+h		;高亮
+				} 
+				else if (DownTime < 300)
+				{
+					backup := clipboard
+					clipboard = 
+					Send, ^c
+					clipboard = %clipboard%
+					Sleep, 50
+					if (clipboard = "") {
+						SendInput, {RButton Down}{RButton Up}
+					}
+					clipboard := backup
 				}
-				clipboard := backup
-			}
-			return
+				return
+		}
 	}
-
+	
 	;方框环绕
 	!f::evernoteEdit("<div style='margin-top: 5px; margin-bottom: 9px; word-wrap: break-word; padding: 8.5px; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: rgb(245, 245, 245); border: 1px solid rgba(0, 0, 0, 0.148438)'>", "</div></br>")
 	;超级标题
@@ -607,153 +610,65 @@ TrayTip
 	/* 需要其它样式，在这里增加 
 	*/	
 	
-	;-------------------------------------------------------------------------------
-	;~ v5版本
-	;-------------------------------------------------------------------------------
-	{
-		/*
-		;evernote从v8.9.0起，编辑器大幅改变，造成以下代码产生bug，粘贴后出现顽固多余空格，div强制换行等等
-		;故暂时不要升级，留在v5.8.12
-		;http://update.evernote.com/public/ENWin5/ReleaseNotes_5.9.6.9494_en-us.html
-		;字体红色
-		#1::evernoteEditText("<div style='color: #F02E37;'><b>", "</b></div>")
-		;字体绿色
-		#4::evernoteEditText("<div style='color: #0F820F;'><b>", "</b></div>")
-		;字体灰色
-		#3::evernoteEditText("<div style='color: #D6D6D6;'>", "</div>")
-		;字体蓝色
-		#2::evernoteEditText("<div style='color: #3740E6;'><b>", "</b></div>")
-		;字体白色（选中可见）
-		;Numpad0 & w::evernoteEditText("↓反白可见<div style='color: white;'>", "</div>&nbsp;&nbsp;↑")
-		Numpad0 & w::evernoteEditText("反白可见【<span style='color: white;'>", "</span>】")
-		
-		;20160206 迫不得已将bg色全换成Text()了，因为复杂笔记内，保留原格式总出问题，简单的去格式只刷背景色才有效
-		;背景色黄色
-		!1::evernoteEditText("<div style='background: #FFFAA5;'>", "</div>")
-		;背景色蓝色
-		!2::evernoteEditText("<div style='background: #ADD8E6;'>", "</div>")		;不要蓝色#ADD8E6
-		;背景色灰色
-		!3::evernoteEditText("<div style='background: #D3D3D3;'>", "</div>")
-		;背景色绿色
-		!4::evernoteEditText("<span style='background: #90EE90;'>", "</span>")		;原颜色#FFD796
-		
-		;周计划专用配色
-		;字体橙色
-		#F1::evernoteEditText("<div style='color: #0F820F;'>", "</div>")
-		;字体绿色
-		#F2::evernoteEditText("<div style='color: #e97d23;'>", "</div>")
-		;字体蓝色
-		#F3::evernoteEditText("<div style='color: #5B85AA;'>", "</div>")
-		;字体土黄色
-		#F4::evernoteEditText("<div style='color: #E1BC29;'>", "</div>")
-		;字体紫色
-		#F5::evernoteEditText("<div style='color: #C200FB;'>", "</div>")
-		*/
-	}
+	;字体白色（选中可见）
+	Numpad0 & w::evernoteEditText("反白可见【<span style='color: white;'>", "</span>】")
 	
-	;-------------------------------------------------------------------------------
-	;~ v6版本-快捷键实现
-	;-------------------------------------------------------------------------------
-	{
-		/*
-		evernoteChangeColor(tabclicknum) {
-			SendInput, ^d
-			WinWait, 字体
-			SendInput, {Tab}{Tab}{Tab}{Tab}{Tab}
-			Loop %tabclicknum% {
-				SendInput, {Right}
-			}
-			SendInput, {Tab}{Enter}
-		}
-		
-		;颜色变量对应表
-		/*
-		褐:=1
-		绿:=2
-		橄榄:=3
-		海军蓝:=4
-		紫:=5
-		青:=6
-		灰:=7
-		银:=8
-		红 := 9
-		酸橙:=10
-		黄:=11
-		蓝:=12
-		紫红:=13
-		水绿:=14
-		白:=15
-		*/
-		
-		/*
-		;字体红色
-		#1::
-			evernoteChangeColor(9)
-			SendInput, ^b
-			return
-		;字体蓝色
-		#2::
-			evernoteChangeColor(12)
-			SendInput, ^b
-			return
-		;字体绿色
-		#4::
-			evernoteChangeColor(2)
-			SendInput, ^b
-			return
-		;字体灰色
-		#3::
-			evernoteChangeColor(7)
-			SendInput, ^b
-			return
-
-		;字体白色（选中可见）
-		Numpad0 & w::evernoteEditText("反白可见【<span style='color: white;'>", "</span>】")
-		
-		;周计划专用配色
-		;字体紫红色
-		#F1::evernoteChangeColor(13)
-		;字体绿色
-		#F2::evernoteChangeColor(2)
-		;字体蓝色
-		#F3::evernoteChangeColor(12)
-		;字体橄榄色
-		#F4::evernoteChangeColor(3)
-		;字体青色
-		#F5::evernoteChangeColor(6)
-		*/
-	}
-}
-
-;-------------------------------------------------------------------------------
-;~ Evernote v6版本-鼠标实现
-;-------------------------------------------------------------------------------
-#IfWinActive ahk_class ENSingleNoteView
-;严重依赖窗口视图相对位置，编辑区域中界限，设定为表格刚刚消失不见时的位置，接近于屏幕竖直中线
-{
+	;v6版本，鼠标点击方式，实现修改文字颜色
 	evernoteMouseChangeColor(r, g, b) {
-		Click 890, 159	;点击颜色按钮
-		SendL("M")
+		IfWinActive, ahk_class ENMainFrame 
+		{
+			Click 890, 159		;点击颜色按钮
+			Click 935, 341		;点击更多颜色
+			;严重依赖窗口视图相对位置，编辑区域中界限，设定为表格刚刚消失不见时的位置，接近于屏幕竖直中线
+		}
+		IfWinActive, ahk_class ENSingleNoteView
+		{
+			Click 231, 121		;点击颜色按钮
+			Click 262, 304		;点击更多颜色
+		}
+		;SendL("M")			;进入更多颜色		
+		Sleep, 50
+		Click, 116, 333		;进入自定义颜色
+		SendInput, {Tab}{Tab}{Tab}
+		SendInput %r%{Tab}%g%{Tab}%b%{Tab}{Space}
+		Click, 21, 259		;点击设定好自定义颜色
+		SendInput, {Tab}{Space}
 		return
 	}
 	
-	
 	;字体红色
-	#1::evernoteMouseChangeColor(1,2,3)
+	#1::
+		evernoteMouseChangeColor(240, 46, 55)
+		SendInput, ^b
+		return
 	;字体蓝色
 	#2::
-	
-	;字体绿色
-	#4::
-		
+		evernoteMouseChangeColor(55, 64, 230)
+		SendInput, ^b
+		return
 	;字体灰色
 	#3::
-		
-
+		evernoteMouseChangeColor(214, 214, 214)
+		return
+	;字体绿色
+	#4::
+		evernoteMouseChangeColor(15, 130, 15)
+		SendInput, ^b
+		return
+	
+	;周计划专用配色
+	;字体橙色
+	#F1::evernoteMouseChangeColor(233, 125, 35)
+	;字体绿色
+	#F2::evernoteMouseChangeColor(15, 130, 15)
+	;字体蓝色
+	#F3::evernoteMouseChangeColor(91, 133, 170)
+	;字体土黄色
+	#F4::evernoteMouseChangeColor(255, 188, 41)
+	;字体紫色
+	#F5::evernoteMouseChangeColor(194, 0, 251)
 }
 
-#IfWinActive ahk_class ENMainFrame
-	
 ;-------------------------------------------------------------------------------
 ;~ Explorer快捷键
 ;-------------------------------------------------------------------------------
