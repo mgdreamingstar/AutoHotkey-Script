@@ -618,6 +618,9 @@ TrayTip
 	
 	;v6版本，鼠标点击方式，实现修改文字颜色
 	evernoteMouseChangeColor(r, g, b) {
+		CoordMode, Mouse, Screen	;鼠标坐标，临时采用全屏幕模式，否则鼠标不能回归原位
+		MouseGetPos, xpos, ypos 
+		CoordMode, Mouse, Client	;鼠标坐标，返回Client模式
 		IfWinActive, ahk_class ENMainFrame 
 		{
 			Click 890, 159		;点击颜色按钮
@@ -636,6 +639,9 @@ TrayTip
 		SendInput %r%{Tab}%g%{Tab}%b%{Tab}{Space}
 		Click, 21, 259		;点击设定好自定义颜色
 		SendInput, {Tab}{Space}
+		CoordMode, Mouse, Screen	;鼠标坐标，继续改回全屏幕模式，方便移动鼠标
+		MouseMove, %xpos%, %ypos%, 0
+		CoordMode, Mouse, Client	;鼠标坐标，继续返回Client模式
 		return
 	}
 	
@@ -663,7 +669,7 @@ TrayTip
 	;字体橙色
 	#F1::evernoteMouseChangeColor(233, 125, 35)
 	;字体绿色
-	#F2::evernoteMouseChangeColor(15, 130, 15)
+	#F2::evernoteMouseChangeColor(55, 64, 230)
 	;字体蓝色
 	#F3::evernoteMouseChangeColor(91, 133, 170)
 	;字体土黄色
