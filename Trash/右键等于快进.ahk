@@ -1,0 +1,1 @@
+RButton:: sendinput, {Right}

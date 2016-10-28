@@ -24,6 +24,19 @@ TrayTip
 ;return		;注：这里不能加return
 
 ;-------------------------------------------------------------------------------
+;~ 垃圾弹窗 自动关闭 (补充adkiller)
+;-------------------------------------------------------------------------------
+{
+	;关闭烦人的about snagit
+	Loop
+	{
+		WinWait, About Snagit
+		WinClose
+	}
+	return
+}
+
+;-------------------------------------------------------------------------------
 ;~ 预处理部分
 ;-------------------------------------------------------------------------------
 {
@@ -453,7 +466,7 @@ TrayTip
 		;豆瓣book搜索
 		Numpad0 & d::openLink("http://book.douban.com/subject_search?search_text=", "&cat=1001")
 		;豆瓣movie搜索
-		Numpad0 & m::openLink("http://movie.douban.com/subject_search?search_text=", "&cat=1001")
+		Numpad0 & s::openLink("http://movie.douban.com/subject_search?search_text=", "&cat=1001")
 		;谷歌搜索
 		Numpad0 & g::openLink("https://www.google.com/search?newwindow=1&site=&source=hp&q=", "&=&=&oq=&gs_l=")
 		;快速查词典
@@ -495,12 +508,13 @@ TrayTip
 		~LWin:: Send, {LControl}{LControl}
 		
 		;配合anki收集
-		Numpad0 & s::
+		/*Numpad0 & s::
 		{
 			WinActivate, ahk_exe anki.exe
 			SendInput, a
 			return
 		}
+		*/
 		
 		;evernote新建笔记
 		Numpad0 & a::SendInput, ^!n
@@ -511,7 +525,7 @@ TrayTip
 			return
 	}
 }
-
+	
 ;-------------------------------------------------------------------------------
 ;~ Evernote快捷键
 ;-------------------------------------------------------------------------------
@@ -528,7 +542,7 @@ TrayTip
 		Tab & q::SendInput, {U+005B}{U+005D}
 		Tab & w::SendInput, √
 		Tab & e::SendInput, ×
-		Tab & r::SendInput, ●
+		;Tab & r::SendInput, ●
 		Tab & t::SendInput, ○
 		$`::SendInput, ``
 		+`::SendInput, ~{Shift}
@@ -676,6 +690,26 @@ TrayTip
 	#F4::evernoteMouseChangeColor(255, 188, 41)
 	;字体紫色
 	#F5::evernoteMouseChangeColor(194, 0, 251)
+	
+	;每日Todo的连续操作
+	Tab & r::
+	{
+		Click, 1131, 500
+		SendInput, ^a
+		Sleep, 20
+		SendInput, ^+v
+		Sleep, 20
+		SendInput, ^h
+		Sleep, 20
+		SendInput, ^a
+		sendL("[]")
+		Click, 982, 686
+		Sleep, 400
+		Click, 1181, 272
+		SendInput, ^a
+		SendInput, ^+c
+		return
+	}
 }
 
 ;-------------------------------------------------------------------------------
@@ -1378,6 +1412,38 @@ TrayTip
     
 }
 
+;-------------------------------------------------------------------------------
+;~ 游戏 狼人杀 快捷键
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_exe 狼人游戏.exe
+{
+	;快捷键
+	Tab & q::SendInput, 我新手【不归票】，你们票谁我【不负责】，我自己会票
+	Tab & w::SendInput, 发言有狼面（纯逻辑分析，真是好人我【不买单】）
+	Tab & e::SendInput, 我个人更相信（但信错不负责）：
+	
+	;随机找房间
+	F2::			
+		CoordMode, Mouse, Screen
+		click, 1316, 229
+		sleep, 500
+		click, 1263, 152
+		Sleep, 1000
+		click, 720, 419
+		return
+
+	;后台抢座位
+	F1::			
+		Loop {
+			SetControlDelay -1
+			ControlClick, X1283 Y124, ahk_exe 狼人游戏.exe
+			Sleep, 1000
+		}
+		return
+	
+	
+	CoordMode, Mouse, Client
+}
 
 ;-------------------------------------------------------------------------------
 ;~ 自动保存
