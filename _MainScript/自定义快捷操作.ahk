@@ -7,6 +7,7 @@
 #Include %A_LineFile%\..\..\Library\WinClipAPI.ahk
 #Include %A_LineFile%\..\..\Library\WinClip.ahk
 ;#Include %A_LineFile%\..\..\Library\url_encode_decode.ahk	;该脚本必须以ANSI运行
+#Include %A_LineFile%\..\..\Library\TrayIcon by FanaticGuru.ahk
 
 SetTitleMatchMode Regex	;更改进程匹配模式为正则
 #SingleInstance ignore	;决定当脚本已经运行时是否允许它再次运行。
@@ -22,19 +23,7 @@ TrayTip, 提示, 脚本已启动, , 1
 Sleep, 1000
 TrayTip
 ;return		;注：这里不能加return
-
-;-------------------------------------------------------------------------------
-;~ 垃圾弹窗 自动关闭 (补充adkiller)
-;-------------------------------------------------------------------------------
-{
-	;关闭烦人的about snagit
-	Loop
-	{
-		WinWait, About Snagit
-		WinClose
-	}
-	return
-}
+Run, d:\BaiduYun\@\Software\AHKScript\_MainScript\非快捷键类 全局运行脚本（由开机脚本自动调用）.ahk
 
 ;-------------------------------------------------------------------------------
 ;~ 预处理部分
@@ -448,6 +437,20 @@ TrayTip
 	
 	;复杂型 快捷键
 	{
+		;cow reload
+		!c::
+			MouseGetPos, xpos, ypos 				;记忆鼠标位置
+			TrayIcon_Button("cow-taskbar.exe", "R")
+			MouseMove, 20, 50,, R
+			MouseClick, left
+			TrayIcon_Button("cow-taskbar.exe", "R")
+			Sleep, 200
+			MouseMove, 20, 40,, R
+			MouseClick, left
+			MouseMove, xpos, ypos					;恢复鼠标位置
+			return
+		
+		
 		/*Tab & o::
 			Loop, 39
 			{
