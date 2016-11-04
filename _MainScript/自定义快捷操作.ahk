@@ -444,7 +444,7 @@ Run, d:\BaiduYun\@\Software\AHKScript\_MainScript\非快捷键类 全局运行�
 			MouseMove, 20, 50,, R
 			MouseClick, left
 			TrayIcon_Button("cow-taskbar.exe", "R")
-			Sleep, 200
+			Sleep, 500
 			MouseMove, 20, 40,, R
 			MouseClick, left
 			MouseMove, xpos, ypos					;恢复鼠标位置
@@ -1010,6 +1010,11 @@ Run, d:\BaiduYun\@\Software\AHKScript\_MainScript\非快捷键类 全局运行�
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_class MozillaWindowClass
 {
+	Tab & q::SendInput, 我新手【不归票】，你们票谁我【不负责】，我自己会票
+	Tab & w::SendInput, 发言有狼面（纯逻辑分析，真是好人我【不买单】）
+	Tab & e::SendInput, 我个人更相信（但信错不负责）：
+	Tab & r::SendInput, 我新手主刀谁？不给建议默认主刀（刀错怪你们不给建议，我不背锅）
+	
 	F1::Send, ^+{Tab}	;切换到前一标签
 	F2::Send, ^{Tab}	;切换到后一标签
 	F3::Send, ^!b		;配合diigo的侧边栏
@@ -1199,36 +1204,28 @@ Run, d:\BaiduYun\@\Software\AHKScript\_MainScript\非快捷键类 全局运行�
 		;MsgBox %outdir%
 		FileDelete, Pdg2Pic_log.txt
 		
-	;goto 检查日志
 		
 		静止状态:		;等待按 开始转换
 		Loop {
-			ControlClick, &4、开始转换, Pdg2Pic	;点击开始转换
+			ControlClick, &4、开始转换, Pdg2Pic, , , , NA		;点击开始转换
 			Sleep 1000
-			ControlGet, ifenable, Enabled, , 转换完毕, Pdg2Pic
+			ControlGet, ifenable, Enabled, , 转换完毕, Pdg2Pic	;如果没出错，转换成功
 			if ifenable = 1
-				goto 点击完成
+				goto 点击完成									;则点击
 		}
 			
 		点击完成:
-			;ControlGet, ifenable2, Visible, , 错误记录, Pdg2Pic
-			;if ifenable2 = 0
-				ControlClick, 确定, Pdg2Pic		;点击转换完成的确定
-			;ControlGetText, ifenable2 , 否, Pdg2Pic
+			ControlClick, 确定, Pdg2Pic, , , , NA		;点击转换完成的确定
 			ControlGet, ifenable2, Enabled, , 否, Pdg2Pic
-			;MsgBox, % ifenable2
 			if ifenable2 = 1
 			{
-				SendInput, {Right}{Space}
+				ControlSend, Button1, n, Pdg2Pic
 			}
-			;ControlClick, , Pdg2Pic	;出错后，不查看log
 			
 		检查日志:
 			;检查是否有日志，如果有则copy
 			ilog = %outdir%\Pdg2Pic_log.txt
-			;MsgBox, %ilog%
 			FileRead, OutputVar, %ilog%
-			;MsgBox, %OutputVar%
 			if NOT ErrorLevel
 			{
 				;如果文件不存在，则为1，如果成功读取到了，则为0
@@ -1239,31 +1236,22 @@ Run, d:\BaiduYun\@\Software\AHKScript\_MainScript\非快捷键类 全局运行�
 			
 		选择下一本书:
 			Sleep 1000
-			;ControlGet, ifenable3, Enabled, , Button2, Pdg2Pic	;检查是否可点击 选书 按钮
-			;if WinActive("Pdg2Pic") and ifenable3 = 1
-			;{
-				ControlClick, Button2, Pdg2Pic	;点击选书
-				Sleep, 1500
-				SendInput, {Down}
-				Sleep, 1500
-				
-				;ControlGet, ifenable4, Enabled, , 确定, 选择存放PDG文件的文件夹		;检查当前是否在文件树 控件
-				;if ifenable4 = 1
-				;{
-					ControlClick, 确定, 选择存放PDG文件的文件夹	;点击确定，完成选书
-				;}
-				Sleep, 500
-				goto 检查是否完成
-			;}
+			ControlClick, Button2, Pdg2Pic, , , , NA	;点击选书
+			Sleep, 1500
+			ControlSend, SysTreeView321, {Down}, 选择存放PDG文件的文件夹
+			Sleep, 1500
+			ControlClick, 确定, 选择存放PDG文件的文件夹	;点击确定，完成选书
+			Sleep, 500
+			goto 检查是否完成
 			
 		检查是否完成:
 			ControlGet, ifenable3, Visible, , 文件夹里没有, Pdg2Pic
-			;MsgBox, % ifenable3
 			if (ifenable3 = 1)
 			{
-				SendInput, {Space}
+				ControlSend, Button1, {Space}, Pdg2Pic
 				;最前端弹窗
-				MsgBox, 262144, PDG->PDF, 全部转换已完成！`n`n错误日志，参见脚本同目录下的Pdg2Pic_log.txt`n(若没有本文件，则表示一切正常)
+				MsgBox, 262144, PDG->PDF, 全部PDG文件，转换完成！`n`n如果转换中有错误，请参见脚本同目录下的Pdg2Pic_log.txt`n（若没有该文件，则说明一切正常）
+
 			}
 			else
 			{
@@ -1440,7 +1428,7 @@ Run, d:\BaiduYun\@\Software\AHKScript\_MainScript\非快捷键类 全局运行�
 		Loop {
 			SetControlDelay -1
 			ControlClick, X1283 Y124, ahk_exe 狼人游戏.exe
-			Sleep, 1000
+			Sleep, 500
 		}
 		return
 	

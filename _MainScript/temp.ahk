@@ -1,11 +1,1 @@
-SetTitleMatchMode Regex	;更改进程匹配模式为正则
-
-{
-	;关闭烦人的about snagit
-	Loop
-	{
-		WinWait, About Snagit
-		WinClose
-	}
-	return
-}
+MsgBox, 262144, Pdg2Pic 批量转换辅助工具, 使用说明：`n`n1）先运行本工具`n2）正常打开Pdg2Pic，选择需要转换的【从上往下数第一个】PDG文件夹`n3）本来应该点击Pdg2Pic的【4、开始转换】，但是不要点击，转而按下键盘的【F1】键`n4）批量转换开始……
