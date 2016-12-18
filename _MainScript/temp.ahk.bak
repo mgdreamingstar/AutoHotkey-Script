@@ -1,11 +1,9 @@
-SetTitleMatchMode Regex	;更改进程匹配模式为正则
+SetTitleMatchMode Regex
+#SingleInstance ignore
 
-{
-	;关闭烦人的about snagit
-	Loop
-	{
-		WinWait, About Snagit
-		WinClose
-	}
-	return
-}
+Pause
+~LButton & s::Suspend
+~LButton & r::Reload
+
+F2::SendInput, {E Down}
+F1::SendInput, {E Up}
