@@ -1,9 +1,20 @@
 SetTitleMatchMode Regex
 #SingleInstance ignore
 
-Pause
-~LButton & s::Suspend
-~LButton & r::Reload
+F2::Reload
 
-F2::SendInput, {E Down}
-F1::SendInput, {E Up}
+;-------------------------------------------------------------------------------
+;~ 游戏 狼人杀 快捷键
+;-------------------------------------------------------------------------------
+#IfWinExist 狼人游戏
+{
+	;后台抢座位
+	F1::			
+		WinGet, active_id, ID, A
+		Loop {
+			SetControlDelay -1
+			ControlClick, X1283 Y609, ahk_id %active_id%,,,, NA	;抢10号位
+			Sleep, 100
+		}
+		return
+}

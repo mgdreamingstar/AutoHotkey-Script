@@ -418,6 +418,9 @@ Run, d:\BaiduYun\@\Software\AHKScript\_MainScript\非快捷键类 全局运行�
 		~LButton & r::Reload
 		~LButton & p::Pause
 		
+		;Ditto自动分组(快捷输入)
+		!Space::^!+l
+		
 		;配合Actual Window Manager做虚拟桌面切换
 		#F1::SendInput, !#{F1}
 		#F2::SendInput, !#{F2}
@@ -680,6 +683,10 @@ Run, d:\BaiduYun\@\Software\AHKScript\_MainScript\非快捷键类 全局运行�
 	#4::
 		evernoteMouseChangeColor(15, 130, 15)
 		SendInput, ^b
+		return
+	;字体白色
+	#5::
+		evernoteMouseChangeColor(255, 255, 255)
 		return
 	
 	;周计划专用配色
@@ -1406,13 +1413,11 @@ Run, d:\BaiduYun\@\Software\AHKScript\_MainScript\非快捷键类 全局运行�
 ;-------------------------------------------------------------------------------
 ;~ 游戏 狼人杀 快捷键
 ;-------------------------------------------------------------------------------
+;#IfWinExist 狼人游戏
 #IfWinActive 狼人游戏
 {
 	;快捷键
-	Tab & q::SendInput, 我新手【不归票】，你们票谁我【不负责】，我自己会票
-	Tab & w::SendInput, 发言有狼面（纯逻辑分析，真是好人我【不买单】）
-	Tab & e::SendInput, 我个人更相信（但信错不负责）：
-	$LShift::SendInput {LShift}{LShift}
+	;$LShift::SendInput {LShift}{LShift}
 	
 	;随机找房间
 	F2::			
@@ -1426,15 +1431,117 @@ Run, d:\BaiduYun\@\Software\AHKScript\_MainScript\非快捷键类 全局运行�
 
 	;后台抢座位
 	F1::			
+		WinGet, active_id, ID, A
 		Loop {
 			SetControlDelay -1
+			ControlClick, X650 Y416, ahk_id %active_id%,,,, NA	;点同意开车
+			Sleep, 50
 			;ControlClick, X1283 Y124, ahk_exe 狼人游戏.exe		;抢9号位
-			;ControlClick, X82 Y607, ahk_exe 狼人游戏.exe		;抢18号位
-			ControlClick, X1283 Y609, ahk_exe 狼人游戏.exe,,,, NA	;抢10号位
+			ControlClick, X82 Y607, ahk_id %active_id%,,,, NA	;抢18号位
+			;ControlClick, X1283 Y609, ahk_id %active_id%,,,, NA	;抢10号位
 			;ControlClick, X656 Y386, ahk_exe 狼人游戏.exe,,,, NA		;点击屏幕中央
+			Sleep, 50
+		}
+		return
+	F5::			
+		WinGet, active_id, ID, A
+		Loop {
+			SetControlDelay -1
+			ControlClick, X1283 Y124, ahk_id %active_id%,,,, NA	;抢9号位
 			Sleep, 100
 		}
 		return
+	
+	;刷分用 结束发言
+	F3::
+		global Loop1Num = 0
+		global Loop2Num = 0
+		GroupAdd, test, ahk_exe 狼人游戏.exe
+		Loop {
+			/**
+			S1：全部坐下
+			S2：开始游戏
+			S3：平安夜阶段
+			S4：收尾杀人阶段
+			*/
+			Loop, 6
+			{
+				SetControlDelay -1
+				ControlClick, X1245 Y239, ahk_group test,,,, NA	;点击加入游戏
+				Sleep, 800
+				GroupActivate, test
+				Sleep, 800
+			}
+			Loop, 12
+			{
+				SetControlDelay -1
+				ControlClick, X1354 Y337, ahk_group test,,,, NA	;点击 开始游戏 或 右侧空白
+				SendInput {Enter}
+				Sleep, 500
+				ControlClick, X1280 Y330, ahk_group test,,,, NA	;点击 中间位置的开始游戏
+				Sleep, 500
+				ControlClick, X616 Y418, ahk_group test,,,, NA	;点击 yes 禁用yn
+				Sleep, 500
+				GroupActivate, test
+				Sleep, 500
+			}
+			;Loop, 12 {
+			Loop, 702 {
+				SetControlDelay -1
+				SendInput, {Enter}
+				Sleep, 100
+				ControlClick, X693 Y432, ahk_group test,,,, NA	;刷新
+				Sleep, 100
+				ControlClick, X1280 Y330, ahk_group test,,,, NA	;点击 结束发言
+				Sleep, 100
+				ControlClick, X1223 Y341, ahk_group test,,,, NA	;刷新
+				Sleep, 800
+				SendInput, {Enter}
+				Sleep, 200
+				SendInput, {Enter}
+				GroupActivate, test
+				Sleep, 100
+				Loop1Num = %A_Index%
+			}
+			Loop, 240 {
+				SetControlDelay -1
+				SendInput, {Enter}
+				Sleep, 100
+				ControlClick, X693 Y432, ahk_group test,,,, NA	;刷新
+				Sleep, 100
+				ControlClick, X1280 Y330, ahk_group test,,,, NA	;点击 结束发言
+				Sleep, 100
+				ControlClick, X841 Y124, ahk_group test,,,, NA	;点击6号
+				Sleep, 100
+				ControlClick, X692 Y124, ahk_group test,,,, NA	;点击5号
+				Sleep, 100
+				ControlClick, X542 Y124, ahk_group test,,,, NA	;点击4号
+				Sleep, 100
+				ControlClick, X391 Y124, ahk_group test,,,, NA	;点击3号
+				Sleep, 100
+				ControlClick, X244 Y124, ahk_group test,,,, NA	;点击2号
+				Sleep, 100
+				;ControlClick, X1223 Y341, ahk_group test,,,, NA	;刷新
+				;Sleep, 700
+				;SendInput, {Enter}
+				;Sleep, 200
+				;SendInput, {Enter}		;杀人阶段不要刷新，否则会触发同一IP检测，离开房间
+				GroupActivate, test
+				Sleep, 100
+				Loop2Num = %A_Index%
+			}
+			/*Loop, 6
+			{
+				ControlClick, X1223 Y341, ahk_group test,,,, NA	;刷新
+				Sleep, 1000
+				SendInput, {Enter}
+				Sleep, 200
+				SendInput, {Enter}
+			}
+			*/
+		}
+		return
+	
 	
 	CoordMode, Mouse, Client
 }
