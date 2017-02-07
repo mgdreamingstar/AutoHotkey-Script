@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "name": "腾讯视频提醒",
+  "description": "No description provided",
+  "source_url": false,
+  "guid": "efdf7ed999d471bf2bf1ad1947e021ff",
+  "tag_fg_color": "#ffffff",
+  "tag_bg_color": "#5bc0de",
+  "icon": "gear",
+  "exported_at": "2017-02-07T12:19:20Z",
+  "agents": [
+    {
+      "type": "Agents::WebsiteAgent",
+      "name": "腾讯视频更新 #1 抓取集数数据",
+      "disabled": false,
+      "guid": "16900ca86ee21e140c69a42f6456f66c",
+      "options": {
+        "_comment": [
+          "无限挑战",
+          "大脑性感时代",
+          "新西游记3",
+          "MyLittleTelevision",
+          "隐秘而伟大"
+        ],
+        "expected_update_period_in_days": "20",
+        "url": [
+          "http://s.video.qq.com/get_playsource?id=3581&plat=2&type=4&data_type=3&video_type=10&year=2017&otype=json&callback=j",
+          "http://s.video.qq.com/get_playsource?id=45196&plat=2&type=4&data_type=3&video_type=10&year=2017&otype=json&callback=j",
+          "http://s.video.qq.com/get_playsource?id=54222&plat=2&type=4&data_type=3&video_type=10&year=2017&otype=json&callback=j",
+          "http://s.video.qq.com/get_playsource?id=33902&plat=2&type=4&data_type=3&video_type=10&year=2017&otype=json&callback=j",
+          "http://s.video.qq.com/get_playsource?id=54990&plat=2&type=4&data_type=3&video_type=10&year=2017&otype=json&callback=j"
+        ],
+        "type": "text",
+        "mode": "on_change",
+        "extract": {
+          "jsondata": {
+            "regexp": "^j\\((.*)\\)",
+            "index": "1"
+          }
+        }
+      },
+      "schedule": "every_10m",
+      "keep_events_for": 172800,
+      "propagate_immediately": true
+    }
+  ],
+  "links": [
+
+  ],
+  "control_links": [
+
+  ]
+}
