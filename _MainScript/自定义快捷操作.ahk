@@ -65,6 +65,30 @@ Menu, LangRenMenu, Add, &6：【不归票】, 局势焦灼
 ;~ 函数部分
 ;-------------------------------------------------------------------------------
 {
+	;Get memory usage of Process 获取一个进程的内存占用 → 用于监控Firefox内存
+	MemUsage(ProcName, Units="K") {
+		Process, Exist, %ProcName%
+		pid := Errorlevel
+
+		; get process handle
+		hProcess := DllCall( "OpenProcess", UInt, 0x10|0x400, Int, false, UInt, pid )
+
+		; get memory info
+		PROCESS_MEMORY_COUNTERS_EX := VarSetCapacity(memCounters, 44, 0)
+		DllCall( "psapi.dll\GetProcessMemoryInfo", UInt, hProcess, UInt, &memCounters, UInt, PROCESS_MEMORY_COUNTERS_EX )
+		DllCall( "CloseHandle", UInt, hProcess )
+
+		SetFormat, Float, 0.0 ; round up K
+
+		PrivateBytes := NumGet(memCounters, 40, "UInt")
+		if (Units == "B")
+			return PrivateBytes
+		if (Units == "K")
+			Return PrivateBytes / 1024
+		if (Units == "M")
+			Return PrivateBytes / 1024 / 1024
+	}
+
 	;-----------------------------------------
 	; 查找屏幕文字/图像字符串及OCR识别
 	; 注意：参数中的x、y为中心点坐标，w、h为左右上下偏移
@@ -768,6 +792,8 @@ Menu, LangRenMenu, Add, &6：【不归票】, 局势焦灼
 		Tab & 9:: Send, ❾{Space}
 		Tab & 0:: Send, ❿{Space}
 		;Tab & g:: Send, √{Space}
+		;多数时候，回车紧接句号，说明前面输入的是英文，那句号应该是英文的点，所以自动修改下
+		
 		
 		;鼠标移动到任务栏，滚动中键，则调节音量。但效果不理想，和搜狗输入法冲突，会输入'b'和'c'，且有难听的声音提示。换用独立工具Volumouse了
 		/*#If MouseIsOver("ahk_class Shell_TrayWnd")
@@ -827,14 +853,17 @@ Menu, LangRenMenu, Add, &6：【不归票】, 局势焦灼
 	
 	;复杂型 快捷键
 	{
+		;cow edit
+		!x::Run "d:\TechnicalSupport\ProgramFiles\cow-win64-0.9.6 不要用0.9.8版本，有连接reset的bug\rc.txt"
 		;cow reload
 		!c::
 			MouseGetPos, xpos, ypos 				;记忆鼠标位置
 			TrayIcon_Button("cow-taskbar.exe", "R")
 			MouseMove, 20, 50,, R
+			Sleep, 1000
 			MouseClick, left
 			TrayIcon_Button("cow-taskbar.exe", "R")
-			Sleep, 500
+			Sleep, 1000
 			MouseMove, 20, 40,, R
 			MouseClick, left
 			MouseMove, xpos, ypos					;恢复鼠标位置
@@ -1483,6 +1512,8 @@ Menu, LangRenMenu, Add, &6：【不归票】, 局势焦灼
 	;	return 
 	
 	~LButton & q::MsgBox % GetProcessMemory_All("firefox.exe")
+		
+	;~LButton & q::MsgBox % MemUsage("firefox.exe", "M")
 }
 
 ;-------------------------------------------------------------------------------
@@ -1678,10 +1709,16 @@ Menu, LangRenMenu, Add, &6：【不归票】, 局势焦灼
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_exe explorer.exe
 {
-	;双击esc关机
+	;双击esc，启用一系列夜间：启动迅雷、局域网同步、公网同步、定时关机
 	~Esc::
-		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500) 
+		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500) {
+			Run d:\BaiduYun\@\Software\AHKScript\Library\nircmd-x64\nircmd.exe mutesysvolume 1
+			;用外部程序来执行静音，避免{Volume_Mute}和搜狗输入法的冲突，参见：http://ahk8.com/thread-2650.html
+			Run, "D:\TechnicalSupport\ProgramFiles\Thunder Network\Thunder\Program\Thunder.exe"
+			Run, "C:\Users\LL\AppData\Roaming\baidu\BaiduYun\baiduyun.exe"
+			Run, "C:\Users\LL\AppData\Roaming\Resilio Sync\Resilio Sync.exe"
 			Run, "D:\BaiduYun\Technical Backup\ProgramFiles\Shutdown8  定时关机\Shutdown8 关机.exe"
+		}
 		return
 }
 
