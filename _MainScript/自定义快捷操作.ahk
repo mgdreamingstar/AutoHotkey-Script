@@ -791,6 +791,15 @@ Menu, LangRenMenu, Add, &6：【不归票】, 局势焦灼
 		Tab & 8:: Send, ❽{Space}
 		Tab & 9:: Send, ❾{Space}
 		Tab & 0:: Send, ❿{Space}
+		Numpad0 & 1:: Send, ①{Space}
+		Numpad0 & 2:: Send, ②{Space}
+		Numpad0 & 3:: Send, ③{Space}
+		Numpad0 & 4:: Send, ④{Space}
+		Numpad0 & 5:: Send, ⑤{Space}
+		Numpad0 & 6:: Send, ⑥{Space}
+		Numpad0 & 7:: Send, ⑦{Space}
+		Numpad0 & 8:: Send, ⑧{Space}
+		
 		;Tab & g:: Send, √{Space}
 		;多数时候，回车紧接句号，说明前面输入的是英文，那句号应该是英文的点，所以自动修改下
 		
