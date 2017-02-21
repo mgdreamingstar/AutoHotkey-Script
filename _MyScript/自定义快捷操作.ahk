@@ -69,8 +69,8 @@
 {
 	;控制当前运行是Unicode64版,若不是则切换 (U64比U32运行更快，尽量用U64)
 	SplitPath A_AhkPath,, AhkDir
-	If ( !(A_PtrSize = 8 && A_IsUnicode ) ) {
-		U64 := AhkDir . "\AutoHotkeyU64.exe"
+	If ( !(A_PtrSize = 4 && A_IsUnicode ) ) {
+		U64 := AhkDir . "\AutoHotkeyU32.exe"
 		If (FileExist(U64)) {
 			Run %U64% %A_LineFile%
 			ExitApp
@@ -717,7 +717,7 @@
 ;~ test部分: 检测某函数的作用，临时代码段
 ;-------------------------------------------------------------------------------
 {
-	^+!/::MsgBox, 111
+	
 }
 
 ;-------------------------------------------------------------------------------
@@ -1747,7 +1747,7 @@
 {
 	;双击esc，启用一系列夜间：启动迅雷、局域网同步、公网同步、定时关机
 	~Esc::
-		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500) {
+		if (A_ThisHotKey = A_PriorHotKey && A_TimeSincePriorHotkey < 500) {
 			;询问是否执行，防止失误导致的触发
 			MsgBox 0x21, 睡前命令, 确认执行？
 			IfMsgBox Cancel, {
