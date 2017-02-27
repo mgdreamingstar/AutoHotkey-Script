@@ -746,7 +746,7 @@
 		;#z::Run "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\plugins\wlx\Syn2\Syn.exe" "d:\BaiduYun\@\Software\AHKScript\_MyScript\自定义快捷操作.ahk"
 		#x::Run "C:\Program Files (x86)\Microsoft Office\root\Office16\EXCEL.EXE"
 		;#e::Run "D:\TechnicalSupport\ProgramFiles\Evernote\Evernote\Evernote.exe"
-		#e::Run "C:\Program Files (x86)\Evernote\Evernote\Evernote.exe"
+		#e::Run "D:\TechnicalSupport\ProgramFiles\Evernote\Evernote\Evernote.exe
 		#y::Run "d:\TechnicalSupport\ProgramFiles\YodaoDict\YodaoDict.exe"
 		#m::Run resmon
 		^#c::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\ColorPic 4.1  屏幕取色小插件 颜色 色彩 配色\#ColorPic.exe"
@@ -779,11 +779,11 @@
 
 	;快捷输入
 	{
+		::tc::TotalCommander
 		:*:b\::
 		:*:bo\::
-			sendL("bootislands")
+			sendL("bootislands")		;放弃unicode难读的方式，用sendL()，来避免触发输入法
 			return
-		;放弃unicode难读的方式，用sendL()，来避免触发输入法
 		:*:b@\::
 			sendL("bootislands@163.com")
 			return
@@ -803,6 +803,7 @@
 			sendL("JavaScript")
 			return
 		::ahk::AutoHotkey
+		::mlo::MyLifeOrganized
 		:*:yjt\:: ⇒{Space}					;	右箭头
 		Tab & s:: Send, ▶{Space}			;	右三角
 		Tab & d:: Send, •{Space}			;	圆点
@@ -889,6 +890,22 @@
 	
 	;复杂型 快捷键
 	{
+		Menu, WholeOSMenu, Add, 注册表-定位路径, 注册表-定位路径
+		注册表-定位路径:
+			; 注册表的HKEY_CURRENT_USER/Software/Microsoft/Windows/CurrentVersion/Applets/Regedit
+			; 下的LastKey项保存了上一次浏览的注册表项位置，所以在打开注册表编辑器前修改它就行了
+			InputBox, NewLastKey, 注册表自动定位工具, 请输入要定位到的路径, , 800, 130
+			IfWinExist, 注册表编辑器 ahk_class RegEdit_RegEdit	
+			{
+				WinClose
+				WinWaitClose
+			}
+			RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Applets\Regedit, LastKey, %NewLastKey%
+			If(ErrorLevel = 1)
+				MsgBox failed
+			Run, regedit.exe
+			return
+
 		;cow edit
 		!x::Run "d:\TechnicalSupport\ProgramFiles\cow-win64-0.9.6 不要用0.9.8版本，有连接reset的bug\rc.txt"
 		;cow reload
@@ -896,10 +913,10 @@
 			MouseGetPos, xpos, ypos 				;记忆鼠标位置
 			TrayIcon_Button("cow-taskbar.exe", "R")
 			MouseMove, 20, 50,, R
-			Sleep, 1000
+			Sleep, 500
 			MouseClick, left
 			TrayIcon_Button("cow-taskbar.exe", "R")
-			Sleep, 1000
+			Sleep, 500
 			MouseMove, 20, 40,, R
 			MouseClick, left
 			MouseMove, xpos, ypos					;恢复鼠标位置
@@ -1313,7 +1330,7 @@
 }
 
 ;-------------------------------------------------------------------------------
-;~ totalcmd快捷键
+;~ TotalCommander快捷键
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_class TTOTAL_CMD
 {
@@ -1332,12 +1349,14 @@
 	;在win7自带资源管理器中打开同路径
 	^Up::
 		Send, ^1
+		Sleep, 50
 		Run, %Clipboard%
 		return
 	
 	;在对侧窗口打开沙盘中同路径
 	^Down::
 		Send, ^1
+		Sleep, 50
 		StringReplace, clipboard, clipboard, :
 		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /S /R="d:\TechnicalSupport\Sandbox\LL\DefaultBox\drive\%Clipboard%"
 		return
@@ -1362,21 +1381,6 @@
 ;title: 
 ;tags: 
 }
-
-;-------------------------------------------------------------------------------
-;~ potplayer快捷键
-;-------------------------------------------------------------------------------
-/*#IfWinActive ahk_class PotPlayer64
-{
-	;为熟悉vim 屏蔽方向键
-	{
-		Up::
-		Down::
-		Left::
-		Right:: return
-	}
-}
-*/
 
 ;-------------------------------------------------------------------------------
 ;~ acrobat dc快捷键
@@ -1575,8 +1579,8 @@
 		` & 1:: SendInput, {U+0063}{U+006F}{U+006E}{U+0073}{U+006F}{U+006C}{U+0065}{U+002E}{U+006C}{U+006F}{U+0067}{U+0028}{U+0029}{U+003B}{Left}{Left}
 		
 		;增加console多行模式的支持
-		;$Enter::SendInput, +{Enter}
-		;$^Enter::SendInput, {Enter}
+		$Enter::SendInput, +{Enter}
+		$^Enter::SendInput, {Enter}
 		
 		;tab
 		;Tab::SendInput, {Space}{Space}{Space}{Space}
@@ -1743,8 +1747,11 @@
 ;-------------------------------------------------------------------------------
 ;~ 桌面在最前端时，快捷键
 ;-------------------------------------------------------------------------------
-#IfWinActive ahk_exe explorer.exe
+#IfWinActive ahk_class WorkerW   ;不要用ahk_exe explorer.exe，会和资源管理器冲突
 {
+	;显示全局菜单
+	F1::Menu, WholeOSMenu, Show
+	
 	;双击esc，启用一系列夜间：启动迅雷、局域网同步、公网同步、定时关机
 	~Esc::
 		if (A_ThisHotKey = A_PriorHotKey && A_TimeSincePriorHotkey < 500) {
@@ -1765,9 +1772,9 @@
 }
 
 ;-------------------------------------------------------------------------------
-;~ 记事本notepad
+;~ 记事本Notepad/Notepad2.exe
 ;-------------------------------------------------------------------------------
-#IfWinActive ahk_exe notepad.exe
+#IfWinActive ahk_exe (notepad.exe|Notepad2.exe)
 {
 	~Esc::
 		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500) 
@@ -1787,15 +1794,6 @@
 	F5:: SendInput, /{U+003A}806{Right}
 	
 }
-
-;-------------------------------------------------------------------------------
-;~ 在"另存为""保存"等窗口，配合Listary进行快速穿越快捷键
-;-------------------------------------------------------------------------------
-/*#IfWinActive ahk_class #32770
-{
-	Numpad0 & a::SendInput, #o
-}
-*/
 
 ;-------------------------------------------------------------------------------
 ;~ 游戏The Escapists快捷键
