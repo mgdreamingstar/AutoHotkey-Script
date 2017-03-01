@@ -34,6 +34,8 @@
 	CoordMode, Mouse, Client	;鼠标坐标采用Client模式
 	;SetCapsLockState,AlwaysOff
 	CountStp := 0	;一键多用的计时器
+	
+	#Hotstring EndChars  `n				;编辑热字串的终止符
 
 	Menu, Tray, Icon, %A_LineFile%\..\Icon\自定义快捷操作.ico, , 1
 	Menu, tray, tip, 自定义快捷键、自动保存 by LL
@@ -64,10 +66,12 @@
 }
 
 ;-------------------------------------------------------------------------------
-;~ 预处理部分
+;~ 全局程序: 注意全局程序，必须写在#IfWinActive *前面* ， 才能执行！
 ;-------------------------------------------------------------------------------
 {
-	;控制当前运行是Unicode64版,若不是则切换 (U64比U32运行更快，尽量用U64)
+	;-------------------------------------------------------------------------------
+	;~ 控制当前运行是Unicode64版,若不是则切换 (U64比U32运行更快，尽量用U64)
+	;-------------------------------------------------------------------------------
 	SplitPath A_AhkPath,, AhkDir
 	If ( !(A_PtrSize = 4 && A_IsUnicode ) ) {
 		U64 := AhkDir . "\AutoHotkeyU32.exe"
@@ -77,6 +81,44 @@
 		} Else {
 			MsgBox 0x2010, AutoGUI, AutoHotkey 64-bit Unicode not found.
 			ExitApp
+		}
+	}
+	
+	;-------------------------------------------------------------------------------
+	;~ 自动结束 垃圾进程
+	;-------------------------------------------------------------------------------
+	trashProcess := ["DownloadSDKServer.exe", "SogouCloud.exe", "SpotifyWebHelper.exe"]			;目标进程名称 = 
+	Loop {
+		For index, value in trashProcess {
+			Process, Exist, %value%				;查找进程是否存在
+			if ( ErrorLevel != 0 ) {
+				Process, Close, %ErrorLevel%		;终止进程
+				if ( ErrorLevel = 0 )
+					MsgBox, 检测到垃圾进程，但我没有成功的结束它！
+			}
+			Sleep, 10000
+		}
+	}
+	
+	;-------------------------------------------------------------------------------
+	;~ 自动保存pdf等
+	;-------------------------------------------------------------------------------
+	窗口1上次保存时间:=A_TickCount-30*1000    ;使下面立即开始检测
+	
+	SetTimer, 自动保存, 5000  ;5秒钟检测一次，刚好可检测5秒内有没有键盘和鼠标操作
+	Return
+
+	; 自动保存函数
+	自动保存:
+	当前时间:=A_TickCount
+	; 如果存在该窗口，且距离上次保存已有5min
+	if WinExist("ahk_exe Acrobat.exe") and (当前时间-窗口1上次保存时间>120*1000)
+	{
+		; 窗口没有激活；或激活了但距离上次用户操作已有5s
+		if !WinActive() or ( WinActive() and (A_TimeIdlePhysical>5000) )
+		{
+			ControlSend, ahk_parent, {Control Down}s{Control Up}, ahk_exe Acrobat.exe
+			窗口1上次保存时间:=当前时间
 		}
 	}
 }
@@ -809,24 +851,22 @@
 		Tab & d:: Send, •{Space}			;	圆点
 		;Tab & f:: Send, ■{Space}			;	方点
 		Tab & f:: Send, ●{Space}			;	大圆点
-		Tab & 1:: Send, ❶{Space}
-		Tab & 2:: Send, ❷{Space}
-		Tab & 3:: Send, ❸{Space}
-		Tab & 4:: Send, ❹{Space}
-		Tab & 5:: Send, ❺{Space}
-		Tab & 6:: Send, ❻{Space}
-		Tab & 7:: Send, ❼{Space}
-		Tab & 8:: Send, ❽{Space}
-		Tab & 9:: Send, ❾{Space}
-		Tab & 0:: Send, ❿{Space}
-		Numpad0 & 1:: Send, ①{Space}
-		Numpad0 & 2:: Send, ②{Space}
-		Numpad0 & 3:: Send, ③{Space}
-		Numpad0 & 4:: Send, ④{Space}
-		Numpad0 & 5:: Send, ⑤{Space}
-		Numpad0 & 6:: Send, ⑥{Space}
-		Numpad0 & 7:: Send, ⑦{Space}
-		Numpad0 & 8:: Send, ⑧{Space}
+		Tab & 1:: Send, ①{Space}
+		Tab & 2:: Send, ②{Space}
+		Tab & 3:: Send, ③{Space}
+		Tab & 4:: Send, ④{Space}
+		Tab & 5:: Send, ⑤{Space}
+		Tab & 6:: Send, ⑥{Space}
+		Tab & 7:: Send, ⑦{Space}
+		Tab & 8:: Send, ⑧{Space}
+		Numpad0 & 1:: Send, ❶{Space}
+		Numpad0 & 2:: Send, ❷{Space}
+		Numpad0 & 3:: Send, ❸{Space}
+		Numpad0 & 4:: Send, ❹{Space}
+		Numpad0 & 5:: Send, ❺{Space}
+		Numpad0 & 6:: Send, ❻{Space}
+		Numpad0 & 7:: Send, ❼{Space}
+		Numpad0 & 8:: Send, ❽{Space}
 		
 		;Tab & g:: Send, √{Space}
 		;多数时候，回车紧接句号，说明前面输入的是英文，那句号应该是英文的点，所以自动修改下
@@ -908,6 +948,7 @@
 
 		;cow edit
 		!x::Run "d:\TechnicalSupport\ProgramFiles\cow-win64-0.9.6 不要用0.9.8版本，有连接reset的bug\rc.txt"
+		!z::Run "d:\TechnicalSupport\ProgramFiles\cow-win64-0.9.6 不要用0.9.8版本，有连接reset的bug\blocked.txt"
 		;cow reload
 		!c::
 			MouseGetPos, xpos, ypos 				;记忆鼠标位置
@@ -3294,28 +3335,7 @@ _____________00__0000____0_____0___0__0_______00__________0_____00___00
 	*/
 }
 
-;-------------------------------------------------------------------------------
-;~ 自动保存
-;-------------------------------------------------------------------------------
-{
-	窗口1上次保存时间:=A_TickCount-30*1000    ;使下面立即开始检测
-	
-	SetTimer, 自动保存, 5000  ;5秒钟检测一次，刚好可检测5秒内有没有键盘和鼠标操作
-	Return
-
-	; 自动保存函数
-	自动保存:
-	当前时间:=A_TickCount
-	; 如果存在该窗口，且距离上次保存已有5min
-	if WinExist("ahk_exe Acrobat.exe") and (当前时间-窗口1上次保存时间>120*1000)
-	{
-		; 窗口没有激活；或激活了但距离上次用户操作已有5s
-		if !WinActive() or ( WinActive() and (A_TimeIdlePhysical>5000) )
-		{
-			ControlSend, ahk_parent, {Control Down}s{Control Up}, ahk_exe Acrobat.exe
-			窗口1上次保存时间:=当前时间
-		}
-	}
-}
-
+;关闭上下文相关性，以下命令，全部针对全局
+#IfWinActive
+;注意以下只能写快捷键。如果写全局命令，不会被执行的。运行的命令，要写在脚本开头
 
