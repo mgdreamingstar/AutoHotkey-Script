@@ -26,7 +26,10 @@
 	#Include %A_LineFile%\..\..\Functions\WinClip\WinClip.ahk
 	;#Include %A_LineFile%\..\..\Functions\url_encode_decode.ahk	;该脚本必须以ANSI运行
 	#Include %A_LineFile%\..\..\Functions\TrayIcon by FanaticGuru.ahk
+	#Include %A_LineFile%\..\..\Functions\WinHttpRequest 网络函数 HTTP get post\WinHttpRequest.ahk
 
+	#InstallKeybdHook		;安装键盘和鼠标钩子 像Input和A_PriorKey，都需要钩子
+	#InstallMouseHook
 	SetTitleMatchMode Regex	;更改进程匹配模式为正则
 	#SingleInstance ignore	;决定当脚本已经运行时是否允许它再次运行。
 	#Persistent				;持续运行不退出
@@ -46,6 +49,7 @@
 
 	;最近不怎么用snagit了，先去掉这行
 	;Run, d:\BaiduYun\@\Software\AHKScript\_MyScript\非快捷键类 全局运行脚本（由开机脚本自动调用）.ahk
+	Run, %A_LineFile%\..\3. 快捷输入.ahk
 
 	;注意：menu菜单的定义，必须在“自动执行段”
 	Menu, LangRenMenu, Add, 大厅中找房, 找狂欢版语音
@@ -63,64 +67,6 @@
 	Menu, LangRenMenu, Add, &5：【没时间思考】, 第一个发言没时间
 	Menu, LangRenMenu, Add, &6：【不归票】, 局势焦灼
 
-}
-
-;-------------------------------------------------------------------------------
-;~ 全局程序: 注意全局程序，必须写在#IfWinActive *前面* ， 才能执行！
-;-------------------------------------------------------------------------------
-{
-	;-------------------------------------------------------------------------------
-	;~ 控制当前运行是Unicode64版,若不是则切换 (U64比U32运行更快，尽量用U64)
-	;-------------------------------------------------------------------------------
-	SplitPath A_AhkPath,, AhkDir
-	If ( !(A_PtrSize = 4 && A_IsUnicode ) ) {
-		U64 := AhkDir . "\AutoHotkeyU32.exe"
-		If (FileExist(U64)) {
-			Run %U64% %A_LineFile%
-			ExitApp
-		} Else {
-			MsgBox 0x2010, AutoGUI, AutoHotkey 64-bit Unicode not found.
-			ExitApp
-		}
-	}
-	
-	;-------------------------------------------------------------------------------
-	;~ 自动结束 垃圾进程
-	;-------------------------------------------------------------------------------
-	trashProcess := ["DownloadSDKServer.exe", "SogouCloud.exe", "SpotifyWebHelper.exe"]			;目标进程名称 = 
-	Loop {
-		For index, value in trashProcess {
-			Process, Exist, %value%				;查找进程是否存在
-			if ( ErrorLevel != 0 ) {
-				Process, Close, %ErrorLevel%		;终止进程
-				if ( ErrorLevel = 0 )
-					MsgBox, 检测到垃圾进程，但我没有成功的结束它！
-			}
-			Sleep, 10000
-		}
-	}
-	
-	;-------------------------------------------------------------------------------
-	;~ 自动保存pdf等
-	;-------------------------------------------------------------------------------
-	窗口1上次保存时间:=A_TickCount-30*1000    ;使下面立即开始检测
-	
-	SetTimer, 自动保存, 5000  ;5秒钟检测一次，刚好可检测5秒内有没有键盘和鼠标操作
-	Return
-
-	; 自动保存函数
-	自动保存:
-	当前时间:=A_TickCount
-	; 如果存在该窗口，且距离上次保存已有5min
-	if WinExist("ahk_exe Acrobat.exe") and (当前时间-窗口1上次保存时间>120*1000)
-	{
-		; 窗口没有激活；或激活了但距离上次用户操作已有5s
-		if !WinActive() or ( WinActive() and (A_TimeIdlePhysical>5000) )
-		{
-			ControlSend, ahk_parent, {Control Down}s{Control Up}, ahk_exe Acrobat.exe
-			窗口1上次保存时间:=当前时间
-		}
-	}
 }
 
 ;-------------------------------------------------------------------------------
@@ -756,6 +702,64 @@
 }
 
 ;-------------------------------------------------------------------------------
+;~ 全局程序: 注意全局程序，必须写在#IfWinActive *前面* ，函数后面， 才能正确执行！
+;-------------------------------------------------------------------------------
+{
+	;-------------------------------------------------------------------------------
+	;~ 控制当前运行是Unicode64版,若不是则切换 (U64比U32运行更快，尽量用U64)
+	;-------------------------------------------------------------------------------
+	SplitPath A_AhkPath,, AhkDir
+	If ( !(A_PtrSize = 4 && A_IsUnicode ) ) {
+		U64 := AhkDir . "\AutoHotkeyU32.exe"
+		If (FileExist(U64)) {
+			Run %U64% %A_LineFile%
+			ExitApp
+		} Else {
+			MsgBox 0x2010, AutoGUI, AutoHotkey 64-bit Unicode not found.
+			ExitApp
+		}
+	}
+	
+	;-------------------------------------------------------------------------------
+	;~ 自动结束 垃圾进程
+	;-------------------------------------------------------------------------------
+	trashProcess := ["DownloadSDKServer.exe", "SogouCloud.exe", "SpotifyWebHelper.exe"]			;目标进程名称 = 
+	Loop {
+		For index, value in trashProcess {
+			Process, Exist, %value%				;查找进程是否存在
+			if ( ErrorLevel != 0 ) {
+				Process, Close, %ErrorLevel%		;终止进程
+				if ( ErrorLevel = 0 )
+					MsgBox, 检测到垃圾进程，但我没有成功的结束它！
+			}
+			Sleep, 10000
+		}
+	}
+	
+	;-------------------------------------------------------------------------------
+	;~ 自动保存pdf等
+	;-------------------------------------------------------------------------------
+	窗口1上次保存时间:=A_TickCount-30*1000    ;使下面立即开始检测
+	
+	SetTimer, 自动保存, 5000  ;5秒钟检测一次，刚好可检测5秒内有没有键盘和鼠标操作
+	Return
+
+	; 自动保存函数
+	自动保存:
+	当前时间:=A_TickCount
+	; 如果存在该窗口，且距离上次保存已有5min
+	if WinExist("ahk_exe Acrobat.exe") and (当前时间-窗口1上次保存时间>120*1000)
+	{
+		; 窗口没有激活；或激活了但距离上次用户操作已有5s
+		if !WinActive() or ( WinActive() and (A_TimeIdlePhysical>5000) )
+		{
+			ControlSend, ahk_parent, {Control Down}s{Control Up}, ahk_exe Acrobat.exe
+			窗口1上次保存时间:=当前时间
+		}
+	}
+}
+
+;-------------------------------------------------------------------------------
 ;~ test部分: 检测某函数的作用，临时代码段
 ;-------------------------------------------------------------------------------
 {
@@ -765,7 +769,7 @@
 ;-------------------------------------------------------------------------------
 ;~ 全局键位
 ;-------------------------------------------------------------------------------
-{	
+{
 	;临时
 	Tab & o::
 	;q::SendInput, p
@@ -808,7 +812,7 @@
 			if WinExist("ahk_class TTOTAL_CMD") {
 				WinClose
 			}
-			;Sleep, 500
+			WinWaitClose, ahk_class TTOTAL_CMD, , 2
 			Run, tc
 			WinWait, ahk_class TNASTYNAGSCREEN				;自动点123
 			WinGetText, Content, ahk_class TNASTYNAGSCREEN	;获取未注册提示窗口文本信息
@@ -821,32 +825,6 @@
 
 	;快捷输入
 	{
-		::tc::TotalCommander
-		:*:b\::
-		:*:bo\::
-			sendL("bootislands")		;放弃unicode难读的方式，用sendL()，来避免触发输入法
-			return
-		:*:b@\::
-			sendL("bootislands@163.com")
-			return
-		:*:bg\::
-			sendL("bootislands@gmail.com")
-			return
-		:*:vg\::
-			sendL("VeryNginx@gmail.com")
-			return
-		:*:rg\::
-			sendL("riverno@gmail.com")
-			return
-		:*:q@\::
-			sendL("1755381995@qq.com")
-			return
-		:*:js\::
-			sendL("JavaScript")
-			return
-		::ahk::AutoHotkey
-		::mlo::MyLifeOrganized
-		:*:yjt\:: ⇒{Space}					;	右箭头
 		Tab & s:: Send, ▶{Space}			;	右三角
 		Tab & d:: Send, •{Space}			;	圆点
 		;Tab & f:: Send, ■{Space}			;	方点
@@ -897,10 +875,7 @@
 		
 		#If
 		*/
-		
-		::sof::stackoverflow
-		
-	}
+}
 	
 	;简单映射型 快捷键
 	{
@@ -1371,7 +1346,7 @@
 }
 
 ;-------------------------------------------------------------------------------
-;~ TotalCommander快捷键
+;~ @TotalCommander快捷键
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_class TTOTAL_CMD
 {
@@ -1399,7 +1374,7 @@
 		Send, ^1
 		Sleep, 50
 		StringReplace, clipboard, clipboard, :
-		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /S /R="d:\TechnicalSupport\Sandbox\LL\DefaultBox\drive\%Clipboard%"
+		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /S /R="d:\TechnicalSupport\Sandbox\LL\"
 		return
 		
 	;压缩多文件为uvz：自动重命名和勾选选项
@@ -1412,7 +1387,7 @@
 }
 
 ;-------------------------------------------------------------------------------
-;~ farbox editor快捷键
+;~ @farbox editor快捷键
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_class QWidget
 {
@@ -1424,7 +1399,7 @@
 }
 
 ;-------------------------------------------------------------------------------
-;~ acrobat dc快捷键
+;~ @acrobat dc快捷键
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_class AcrobatSDIWindow
 {
@@ -1511,18 +1486,19 @@
 }
 
 ;-------------------------------------------------------------------------------
-;~ Firefox快捷键
+;~ @Firefox快捷键
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_class MozillaWindowClass
 {
-	Tab & q::SendInput, 我新手【不归票】，你们票谁我【不负责】，我自己会票
-	Tab & w::SendInput, 发言有狼面（纯逻辑分析，真是好人我【不买单】）
-	Tab & e::SendInput, 我个人更相信（但信错不负责）：
-	Tab & r::SendInput, 我新手主刀谁？不给建议默认主刀（刀错怪你们不给建议，我不背锅）
-	
 	F1::Send, ^+{Tab}	;切换到前一标签
 	F2::Send, ^{Tab}	;切换到后一标签
-	F3::Send, ^!b		;配合diigo的侧边栏
+	F3::
+		Send, ^!b		;配合diigo的侧边栏
+		Sleep, 400
+		CoordMode, mouse, Client
+		ControlClick, x160 y170, A  			;Click, 152, 170 但不移动鼠标
+		return
+	
 	;用AutoHotkey绑定`和关闭标签，容易写代码时误关闭，改为用ff脚本KeyChanger做。
 	;但KeyChanger在空白tab和Google上又自动进入输入焦点，还是回到ahk。判断下当前是否输入状态吧
 	$`::
@@ -1535,30 +1511,40 @@
 	!`::Send, ``		;恢复本来的`功能
 	^b::Send, ^t^v{Enter}		;快捷打开复制的网址
 	
-	` & 1::SendInput, console.log();{Left}{Left}
-	
+	` & 1::
+		sendL("console.log();")
+		SendInput, {Left}{Left}
+		return
+		
 	;某些网页，单击win造成的双击ctrl，会触发js，导致win+a印象笔记摘录失效，所以这里屏蔽一下，改成单击ctrl
 	~LWin:: SendInput, {LControl}
 	
-	Numpad0 & w::openLink("http://zh.wikipedia.org/w/index.php?search=", "")
-	Numpad0 & q::openLink("http://book.szdnet.org.cn/search?Field=all&channel=search&sw=", "")
-	Numpad0 & e::openFakeLink("es ", "")		;配合Firefox，E书园搜索
-	Numpad0 & r::		;E书园求书时用，文献港链接 替换成 读秀链
+	;-------------------------------------------------------------------------------
+	;~ 打开一些网址的快捷键
+	;-------------------------------------------------------------------------------
 	{
-		clipboard = 
-		SendInput, ^a
-		Sleep, 100
-		SendInput, ^c
-		ClipWait, 1	; 等待剪贴板中出现文本.
-		backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
-		clipboard := RegExReplace(clipboard, "szdnet.org.cn/views/specific/2929", "duxiu.com")  
-		SendInput, ^v{Enter}
-		Sleep, 500	;这里必须加个延迟，否则下一行太快执行
-		clipboard = %backup%
-		return
+		Numpad0 & w::openLink("http://zh.wikipedia.org/w/index.php?search=", "")
+		Numpad0 & q::openLink("http://book.szdnet.org.cn/search?Field=all&channel=search&sw=", "")
+		Numpad0 & e::openFakeLink("es ", "")		;配合Firefox，E书园搜索
+		Numpad0 & r::		;E书园求书时用，文献港链接 替换成 读秀链
+		{
+			clipboard = 
+			SendInput, ^a
+			Sleep, 100
+			SendInput, ^c
+			ClipWait, 1	; 等待剪贴板中出现文本.
+			backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
+			clipboard := RegExReplace(clipboard, "szdnet.org.cn/views/specific/2929", "duxiu.com")  
+			SendInput, ^v{Enter}
+			Sleep, 500	;这里必须加个延迟，否则下一行太快执行
+			clipboard = %backup%
+			return
+		}
 	}
 	
-	;双击右键，调用diigo高亮，同时不干扰鼠标手势
+	;-------------------------------------------------------------------------------
+	;~ 双击右键，调用diigo高亮，同时不干扰鼠标手势
+	;-------------------------------------------------------------------------------
 	{
 		;在Up时判断：和上次Up间隔短则高亮，和上次Down间隔短则弹出右键，都不是说明是鼠标手势则忽略
 		;菜单在Up时弹出，手势在down且超时时启用
@@ -1582,8 +1568,6 @@
 			return
 	}
 	
-	;^s::MouseClick, WheelDown, , , 25
-	
 	;还没想好怎么做
 	;自动判断是否选中文本，否的话，替换复制为全选+复制
 	;^c::
@@ -1593,12 +1577,35 @@
 	;	return 
 	
 	~LButton & q::MsgBox % GetProcessMemory_All("firefox.exe")
-		
 	;~LButton & q::MsgBox % MemUsage("firefox.exe", "M")
+	
+	;-------------------------------------------------------------------------------
+	;~ 网易云音乐 快捷键  (因为用了#if，必须放在最后)
+	;-------------------------------------------------------------------------------
+	/*		
+	;把方向键作修饰符的话，副作用较多，例如长按Left、按住shift再按Left……都要另处理，麻烦
+	Left & Right:: 
+	Right & Left:: SendInput, ^+{Left}
+	$Left::SendInput {Left}
+	$Right::SendInput {Right}
+	
+	;用AuhoHotkey论坛其他人的建议，用Input，也没试验成功
+	~Left::
+		Input, UserInput, V T3 L1, , {Right}
+		if ErrorLevel = Match
+			SendInput, ^+{Right}
+		return
+	;至于通过if，定义快捷键上下文，也不可行，必须用#if
+	if ( a_priorkey = "left" && A_TimeSincePriorHotkey < 1000) 
+		Right:: SendInput, ^+{right}
+	if ( a_priorkey = "right" && A_TimeSincePriorHotkey < 1000) 
+		Left:: SendInput, ^+{left}
+	*/
+	
 }
 
 ;-------------------------------------------------------------------------------
-;~ google chrome快捷键
+;~ google @chrome快捷键
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_class Chrome_WidgetWin_1
 {
@@ -1617,7 +1624,10 @@
 	;以下都是针对 fe开发 的快捷键
 	{
 		;快捷输入console.log();
-		` & 1:: SendInput, {U+0063}{U+006F}{U+006E}{U+0073}{U+006F}{U+006C}{U+0065}{U+002E}{U+006C}{U+006F}{U+0067}{U+0028}{U+0029}{U+003B}{Left}{Left}
+		` & 1::
+			sendL("console.log();")
+			SendInput, {Left}{Left}
+			return
 		
 		;增加console多行模式的支持
 		$Enter::SendInput, +{Enter}
@@ -1633,7 +1643,7 @@
 }
 
 ;-------------------------------------------------------------------------------
-;~ sublime text 3 快捷键
+;~ @sublime text 3 快捷键
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_exe sublime_text.exe
 {	
@@ -1666,7 +1676,7 @@
 }
 
 ;-------------------------------------------------------------------------------
-;~ OneNote 快捷键
+;~ @OneNote 快捷键
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_exe ONENOTE.EXE
 {
@@ -1698,7 +1708,7 @@
 }
 
 ;-------------------------------------------------------------------------------
-;~ pdg2pic: pdg批量转换pdf
+;~ @pdg2pic: pdg批量转换pdf
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_exe Pdg2Pic.exe
 {
@@ -1769,7 +1779,16 @@
 }
 
 ;-------------------------------------------------------------------------------
-;~ ultraEdit
+;~ @potplayer 快捷键
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_exe PotPlayerMini.exe
+{
+	F1::
+	+/:: MsgBox, 【字幕同步】点号逗号/0.5s，ctrl点号逗号/5s`n【截屏】P		
+}
+
+;-------------------------------------------------------------------------------
+;~ @ultraEdit
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_exe uedit32.exe
 {
@@ -1819,7 +1838,12 @@
 {
 	~Esc::
 		if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500) 
-			Send, !{F4}n
+		{
+			SendInput, !{F4}
+			Sleep, 200
+			SendInput, n
+			;WinKill, A       ;不管用
+		}
 		return
 }
 
@@ -3333,6 +3357,14 @@ _____________00__0000____0_____0___0__0_______00__________0_____00___00
 	e::SendInput, m
 	r::SendEvent, m
 	*/
+}
+
+;-------------------------------------------------------------------------------
+;~ 浏览器 全屏Flash 看视频时
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_exe plugin-container.exe
+{
+	Space:: SendInput, {LButton}
 }
 
 ;关闭上下文相关性，以下命令，全部针对全局

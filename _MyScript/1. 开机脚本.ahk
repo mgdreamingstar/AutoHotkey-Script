@@ -19,7 +19,7 @@ SendMode Input				;据说SendInput is the fastest send method.
 
 	Run, "D:\TechnicalSupport\ProgramFiles\cow-win64-0.9.6 不要用0.9.8版本，有连接reset的bug\cow-taskbar.exe"
 	Run, "D:\BaiduYun\@\Software\shadowsocks-qt5 因为cow只提供http，无socks5和https接口，故专开一下客户端。不用了，可以用privoxy模拟socks5\ss-qt5.exe"
-	Run, "D:\TechnicalSupport\ProgramFiles\AutoHotkey\AutoHotkeyU32.exe" D:\BaiduYun\@\Software\AHKScript\_MyScript\自定义快捷操作.ahk
+	Run, "D:\TechnicalSupport\ProgramFiles\AutoHotkey\AutoHotkeyU32.exe" "D:\BaiduYun\@\Software\AHKScript\_MyScript\2. 自定义快捷操作.ahk"
 	
 	;如果是星期天，则更新host
 	if ( A_WDay = 1 ) {
