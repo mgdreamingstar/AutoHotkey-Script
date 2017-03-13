@@ -38,9 +38,8 @@ SendMode Input				;据说SendInput is the fastest send method.
 	7zdir := "d:\BaiduYun\Technical Backup\ProgramFiles.Trust\7z1604-extra  7zip的单独命令行版本\7za.exe"
 	
 	FileGetTime, timestamp, %backupdir%, C
-	FormatTime, date, timestamp, yyyyMMdd
+	FormatTime, date, %timestamp%, yyyyMMdd
 	xData := A_YYYY * 10000 + A_MM * 100 + A_DD - date
-	
 	;如果备份是7天前的
 	if ( xData > 7 ) {
 		FileMove, %backupdir%, %date% Use.zip

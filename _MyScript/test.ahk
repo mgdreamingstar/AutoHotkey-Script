@@ -1,5 +1,2 @@
-﻿SetTitleMatchMode Regex
-#IfWinActive ahk_exe explorer.exe
-{
-	Esc::MsgBox, 11123333
-}
+﻿MsgBox, 11123333
+

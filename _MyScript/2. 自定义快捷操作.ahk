@@ -66,7 +66,7 @@
 	Menu, LangRenMenu, Add, &4：【问归】, 问归
 	Menu, LangRenMenu, Add, &5：【没时间思考】, 第一个发言没时间
 	Menu, LangRenMenu, Add, &6：【不归票】, 局势焦灼
-
+	Menu, WholeOSMenu, Add, 注册表-定位路径, 注册表-定位路径
 }
 
 ;-------------------------------------------------------------------------------
@@ -905,7 +905,6 @@
 	
 	;复杂型 快捷键
 	{
-		Menu, WholeOSMenu, Add, 注册表-定位路径, 注册表-定位路径
 		注册表-定位路径:
 			; 注册表的HKEY_CURRENT_USER/Software/Microsoft/Windows/CurrentVersion/Applets/Regedit
 			; 下的LastKey项保存了上一次浏览的注册表项位置，所以在打开注册表编辑器前修改它就行了
@@ -1028,7 +1027,7 @@
 		` & 1::SendInput, {U+0069}{U+006E}{U+0074}{U+0069}{U+0074}{U+006C}{U+0065}{U+003A}		;输入intitle:，为了避免输入法影响，用unicode输入
 		` & 2::SendInput, Δ{Space}
 		` & 3::SendInput, Ø{Space}
-		` & 4::SendInput, ^;			;快速插入日期时间
+		` & d::SendInput, ^;			;快速插入日期时间
 		;Tab & q::evernoteInsertHTML("<span style='color: #e97d23'>[]</span>")			;之前颜色#355986
 		Tab & q::SendInput, {U+005B}{U+005D}
 		Tab & w::SendInput, √
@@ -1337,12 +1336,13 @@
 #IfWinActive ahk_class TfrmMyLifeMain
 {
 	;mlo的备注不支持中文路径的超链接，因此加这个脚本
-	F1::
+	/*F1::
 	{
 		Send ^c
 		Run %clipboard%
 		Return
 	}
+	*/
 }
 
 ;-------------------------------------------------------------------------------
@@ -1812,6 +1812,9 @@
 	;显示全局菜单
 	F1::Menu, WholeOSMenu, Show
 	
+	;显示MyLifeOrganized
+	F2::SendInput ^+!#m
+	
 	;双击esc，启用一系列夜间：启动迅雷、局域网同步、公网同步、定时关机
 	~Esc::
 		if (A_ThisHotKey = A_PriorHotKey && A_TimeSincePriorHotkey < 500) {
@@ -1822,10 +1825,10 @@
 			} Else IfMsgBox OK, {
 				Run d:\BaiduYun\@\Software\AHKScript\Functions\nircmd-x64\nircmd.exe mutesysvolume 1
 				;用外部程序来执行静音，避免{Volume_Mute}和搜狗输入法的冲突，参见：http://ahk8.com/thread-2650.html
-				Run, "D:\TechnicalSupport\ProgramFiles\Thunder Network\Thunder\Program\Thunder.exe"
+				Run, "D:\TechnicalSupport\ProgramFiles.Untrust\Thunder Network\Thunder\Program\Thunder.exe"
 				Run, "C:\Users\LL\AppData\Roaming\baidu\BaiduYun\baiduyun.exe"
 				Run, "C:\Users\LL\AppData\Roaming\Resilio Sync\Resilio Sync.exe"
-				Run, "D:\BaiduYun\Technical Backup\ProgramFiles\Shutdown8  定时关机\Shutdown8 关机.exe"
+				Run, "D:\BaiduYun\Technical Backup\ProgramFiles.Trust\Shutdown8  定时关机\Shutdown8 关机.exe"
 			}
 		}
 		return
