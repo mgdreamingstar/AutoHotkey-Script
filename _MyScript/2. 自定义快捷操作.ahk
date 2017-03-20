@@ -7,7 +7,6 @@
 ;-------------------------------------------------------------------------------
 ;~ 脚本配置 #Include等
 ;-------------------------------------------------------------------------------
-{
 	;提升性能相关的配置
 	#NoEnv						;不检查空变量是否为环境变量
 	;#KeyHistory 0				;不记录击键log
@@ -50,130 +49,11 @@
 
 	;最近不怎么用snagit了，先去掉这行
 	;Run, d:\BaiduYun\@\Software\AHKScript\_MyScript\非快捷键类 全局运行脚本（由开机脚本自动调用）.ahk
-	Run, %A_LineFile%\..\3. 快捷输入.ahk
-
-	;注意：menu菜单的定义，必须在“自动执行段”
-	Menu, LangRenMenu, Add, 大厅中找房, 找狂欢版语音
-	Menu, LangRenMenu, Add, 占座#9, 占座#9
-	Menu, LangRenMenu, Add, 占座#10, 占座#10
-	Menu, LangRenMenu, Add, 占座#18, 占座#18
-	Menu, LangRenMenu, Add			; 添加分隔线
-	Menu, LangRenMenu, Add, &F：快速第一个投票, 快速第一个投票
-	Menu, LangRenMenu, Add, &B：全场标记村民, 全场标记村民
-	Menu, LangRenMenu, Add			; 添加分隔线
-	Menu, LangRenMenu, Add, &1：【踩人】, 找狼不积极
-	Menu, LangRenMenu, Add, &2：【踩错不担责】, 踩错声明
-	Menu, LangRenMenu, Add, &3：【先知y熊n】, 问先知熊
-	Menu, LangRenMenu, Add, &4：【问归】, 问归
-	Menu, LangRenMenu, Add, &5：【没时间思考】, 第一个发言没时间
-	Menu, LangRenMenu, Add, &6：【不归票】, 局势焦灼
-	Menu, WholeOSMenu, Add, 注册表-定位路径, 注册表-定位路径
-}
 
 ;-------------------------------------------------------------------------------
 ;~ 函数部分
 ;-------------------------------------------------------------------------------
 {
-	;Get memory usage of Process 获取一个进程的内存占用 → 用于监控Firefox内存
-	MemUsage(ProcName, Units="K") {
-		Process, Exist, %ProcName%
-		pid := Errorlevel
-
-		; get process handle
-		hProcess := DllCall( "OpenProcess", UInt, 0x10|0x400, Int, false, UInt, pid )
-
-		; get memory info
-		PROCESS_MEMORY_COUNTERS_EX := VarSetCapacity(memCounters, 44, 0)
-		DllCall( "psapi.dll\GetProcessMemoryInfo", UInt, hProcess, UInt, &memCounters, UInt, PROCESS_MEMORY_COUNTERS_EX )
-		DllCall( "CloseHandle", UInt, hProcess )
-
-		SetFormat, Float, 0.0 ; round up K
-
-		PrivateBytes := NumGet(memCounters, 40, "UInt")
-		if (Units == "B")
-			return PrivateBytes
-		if (Units == "K")
-			Return PrivateBytes / 1024
-		if (Units == "M")
-			Return PrivateBytes / 1024 / 1024
-	}
-
-
-	  ;--------------------------------------
-	  ; 统计字库文字的个数和宽高，将解释文字存入数组并删除<>
-	  ;--------------------------------------
-	  wenzitab:=[], num:=0, wz:="", j:=""
-	  fmt:=A_FormatInteger
-	  SetFormat, IntegerFast, d    ; 正则表达式中要用十进制
-	  Loop, Parse, wenzi, |
-	  {
-		v:=A_LoopField, txt:=""
-		e1:=cha1, e0:=cha0
-		; 用角括号输入每个字库字符串的识别结果文字
-		if RegExMatch(v,"<([^>]*)>",r)
-		  v:=StrReplace(v,r), txt:=r1
-		; 可以用中括号输入每个文字的两个容差，以逗号分隔
-		if RegExMatch(v,"\[([^\]]*)]",r)
-		{
-		  v:=StrReplace(v,r), r2:=""
-		  StringSplit, r, r1, `,
-		  e1:=r1, e0:=r2
-		}
-		; 记录每个文字的起始位置、宽、高、10字符的数量和容差
-		v:=Trim(RegExReplace(v,"[^_0\n]+"),"`n") . "`n"
-		w:=InStr(v,"`n")-1, h:=StrLen(v)//(w+1)
-		re:="[0_]{" w "}\n"
-		if (w>sw or h>sh or w<1 or RegExReplace(v,re)!="")
-		  Continue
-		v:=StrReplace(v,"`n")
-		if InStr(c,"-")
-		  v:=StrReplace(v,"_","1"), r:=e1, e1:=e0, e0:=r
-		else
-		  v:=StrReplace(StrReplace(v,"0","1"),"_","0")
-		len1:=StrLen(StrReplace(v,"0"))
-		len0:=StrLen(StrReplace(v,"1"))
-		e1:=Round(len1*e1), e0:=Round(len0*e0)
-		j.=StrLen(wz) "|" w "|" h
-		  . "|" len1 "|" len0 "|" e1 "|" e0 "|"
-		wz.=v, wenzitab[++num]:=Trim(txt)
-	  }
-	  SetFormat, IntegerFast, %fmt%
-	  if wz=
-		Return, 0
-	  ;--------------------------------------
-	  ; wz 使用Astr参数类型可以自动转为ANSI版字符串
-	  ; in 输入各文字的起始位置等信息，out 返回结果
-	  ; ss 等为临时内存，jiange 超过间隔就会加入*号
-	  ;--------------------------------------
-	  mode:=InStr(c,"**") ? 2 : InStr(c,"*") ? 1 : 0
-	  c:=RegExReplace(c,"[*\-]"), jiange:=5, num*=7
-	  VarSetCapacity(in,num*4,0), i:=-4
-	  Loop, Parse, j, |
-		if (A_Index<=num)
-		  NumPut(A_LoopField, in, i+=4, "int")
-	  VarSetCapacity(gs, sw*sh)
-	  VarSetCapacity(ss, sw*sh, Asc("0"))
-	  k:=StrLen(wz)*4
-	  VarSetCapacity(s1, k, 0), VarSetCapacity(s0, k, 0)
-	  VarSetCapacity(out, 1024*4, 0)
-	  if DllCall(&MyFunc, "int",mode, "uint",c
-		, "int",jiange, "ptr",Scan0, "int",Stride
-		, "int",sx, "int",sy, "int",sw, "int",sh
-		, "ptr",&gs, "ptr",&ss
-		, "Astr",wz, "ptr",&s1, "ptr",&s0
-		, "ptr",&in, "int",num, "ptr",&out)
-	  {
-		ocr:="", i:=-4  ; 返回第一个文字的中心位置
-		x:=NumGet(out,i+=4,"int"), y:=NumGet(out,i+=4,"int")
-		w:=NumGet(out,i+=4,"int"), h:=NumGet(out,i+=4,"int")
-		rx:=x+w//2, ry:=y+h//2
-		While (k:=NumGet(out,i+=4,"int"))
-		  v:=wenzitab[k//7], ocr.=v="" ? "*" : v
-		Return, 1
-	  }
-	  Return, 0
-	}
-
 	MCode(ByRef code, hex)
 	{
 	  ListLines, Off
@@ -347,83 +227,6 @@
 		Return WinPath
 	}
 
-	;=============================================================================================================
-	; Func: GetProcessMemory_Private
-	; Get the number of private bytes used by a specified process.  Result is in K by default, but can also be in
-	; bytes or MB.
-	;
-	; Params:
-	;   ProcName    - Name of Process (e.g. Firefox.exe)
-	;   Units       - Optional Unit of Measure B | K | M.  Defaults to K (Kilobytes)
-	;
-	; Returns:
-	;   Private bytes used by the process
-	;-------------------------------------------------------------------------------------------------------------
-	GetProcessMemory_Private(ProcName, Units="K") {
-		Process, Exist, %ProcName%
-		pid := Errorlevel
-
-		; get process handle
-		hProcess := DllCall( "OpenProcess", UInt, 0x10|0x400, Int, false, UInt, pid )
-
-		; get memory info
-		PROCESS_MEMORY_COUNTERS_EX := VarSetCapacity(memCounters, 44, 0)
-		DllCall( "psapi.dll\GetProcessMemoryInfo", UInt, hProcess, UInt, &memCounters, UInt, PROCESS_MEMORY_COUNTERS_EX )
-		DllCall( "CloseHandle", UInt, hProcess )
-
-		SetFormat, Float, 0.0 ; round up K
-
-		PrivateBytes := NumGet(memCounters, 40, "UInt")
-		if (Units == "B")
-			return PrivateBytes
-		if (Units == "K")
-			Return PrivateBytes / 1024
-		if (Units == "M")
-			Return PrivateBytes / 1024 / 1024
-	}
-
-
-	;=============================================================================================================
-	; Func: GetProcessMemory_All
-	; Get all Process Memory Usage Counters.  Mimics what's shown in Task Manager.
-	;
-	; Params:
-	;   ProcName    - Name of Process (e.g. Firefox.exe)
-	;
-	; Returns:
-	;   String with all values in KB as one big string.  Use a Regular Expression to parse out the value you want.
-	;-------------------------------------------------------------------------------------------------------------
-	GetProcessMemory_All(ProcName) {
-		Process, Exist, %ProcName%
-		pid := Errorlevel
-
-		; get process handle
-		hProcess := DllCall( "OpenProcess", UInt, 0x10|0x400, Int, false, UInt, pid )
-
-		; get memory info
-		PROCESS_MEMORY_COUNTERS_EX := VarSetCapacity(memCounters, 44, 0)
-		DllCall( "psapi.dll\GetProcessMemoryInfo", UInt, hProcess, UInt, &memCounters, UInt, PROCESS_MEMORY_COUNTERS_EX )
-		DllCall( "CloseHandle", UInt, hProcess )
-
-		list := "cb,PageFaultCount,PeakWorkingSetSize,WorkingSetSize,QuotaPeakPagedPoolUsage"
-			  . ",QuotaPagedPoolUsage,QuotaPeakNonPagedPoolUsage,QuotaNonPagedPoolUsage"
-			  . ",PagefileUsage,PeakPagefileUsage,PrivateUsage"
-
-		n := 0
-		Loop, Parse, list, `,
-		{
-			n += 4
-			SetFormat, Float, 0.0 ; round up K
-			this := A_Loopfield
-			this := NumGet( memCounters, (A_Index = 1 ? 0 : n-4), "UInt") / 1024
-
-			; omit cb
-			If A_Index != 1
-				info .= A_Loopfield . ": " . this . " K" . ( A_Loopfield != "" ? "`n" : "" )
-		}
-
-		Return "[" . pid . "] " . pname . "`n`n" . info ; for everything
-	}
 }
 
 ;-------------------------------------------------------------------------------
@@ -500,55 +303,7 @@
 
 	;常用软件快速启动
 	{
-		;配合Listary快速启动
-		#r::SendInput, ^!+r
-		;#c::Run "d:\TechnicalSupport\ProgramFiles\babun-1.2.0\.babun\babun.bat"
-		#c::Run cmd
-		!#c::Run, "C:\Windows\System32\cmd.exe"
-		;注意主profile不要加--no-remote，否则evernote等打开链接时，会报错「已经运行，没有响应」云云。这里不必装安装版
-		#f::Run "d:\TechnicalSupport\ProgramFiles\Firefox-pcxFirefox\firefox\firefox.exe"
-		;!#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\UseFirefox\firefox\firefox.exe" --no-remote
-		;#d::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\DevFirefox\pcxfirefox\firefox.exe" --no-remote
-		;#g::Run "d:\TechnicalSupport\ProgramFiles\GoogleChrome 便携版\MyChrome for Use\MyChrome.exe"
-		#g::Run "D:\TechnicalSupport\ProgramFiles\CentBrowser\chrome.exe"
-		#n::Run notepad
-		#z::Run "d:\TechnicalSupport\ProgramFiles\AutoHotkey\SciTE\SciTE.exe"
-		;#z::Run "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\plugins\wlx\Syn2\Syn.exe" "d:\BaiduYun\@\Software\AHKScript\_MyScript\自定义快捷操作.ahk"
-		#x::Run "C:\Program Files (x86)\Microsoft Office\root\Office16\EXCEL.EXE"
-		;#e::Run "D:\TechnicalSupport\ProgramFiles\Evernote\Evernote\Evernote.exe"
-		#e::Run "D:\TechnicalSupport\ProgramFiles\Evernote\Evernote\Evernote.exe
-		#y::Run "d:\TechnicalSupport\ProgramFiles\YodaoDict\YodaoDict.exe"
-		#m::Run resmon
-		;^#c::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\ColorPic 4.1  屏幕取色小插件 颜色 色彩 配色\#ColorPic.exe"
-		;^#s::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\#Fast Run\st.lnk"
-		>!m::Run, "C:\Users\LL\AppData\Roaming\Spotify\Spotify.exe"
-		~LButton & F2::SendInput, ^+!#m
-		#s::
-			Run sx
-			Run pp
-			;Run ABBYY Screenshot Reader
-			return
-		;录制gif
-		/*#!s::
-			Run "d:\BaiduYun\Technical Backup\ProgramFiles\keycastow 显示击键按键，录制屏幕时很有用\keycastow.exe"
-			Run "d:\BaiduYun\Technical Backup\ProgramFiles\#Repository\ScreenToGif 1.4.1 屏幕录制gif\$$ScreenToGif - Preview 11 屏幕录制gif.exe"
-			return
-			*/
-		#t::
-			if WinExist("ahk_class TTOTAL_CMD") {
-				WinClose
-			}
-			WinWaitClose, ahk_class TTOTAL_CMD, , 2
-			Sleep, 500
-			Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE"
-			WinWait, ahk_class TNASTYNAGSCREEN				;自动点123
-			WinGetText, Content, ahk_class TNASTYNAGSCREEN	;获取未注册提示窗口文本信息
-			StringMid, Num, Content, 10, 1					;获取随机数字
-			ControlSend,, %Num%, ahk_class TNASTYNAGSCREEN	;将随机数字发送到未注册提示窗口
-			WinActivate, ahk_class TTOTAL_CMD
-			return
-		;Numpad0 & q::Run "shell:::{ED7BA470-8E54-465E-825C-99712043E01C}"
-	}
+
 
 	;快捷输入
 	{
@@ -576,10 +331,11 @@
 		;Tab & g:: Send, √{Space}
 		;多数时候，回车紧接句号，说明前面输入的是英文，那句号应该是英文的点，所以自动修改下
 
-		}
+
 
 		#If
 		*/
+
 }
 
 	;简单映射型 快捷键
@@ -695,7 +451,7 @@
 			WinWaitActive, ahk_class ENMainFrame, , 2
 			sendL("notebook:""1  Cabinet"" ")		;注意字符中的双引号要转义，不是\"，而是两个引号""
 			return
-	}
+
 }
 
 ;-------------------------------------------------------------------------------
@@ -885,110 +641,3 @@
 ;关闭上下文相关性，以下命令，全部针对全局
 #IfWinActive
 ;注意以下只能写快捷键。如果写全局命令，不会被执行的。运行的命令，要写在脚本开头
-
-
-;-------------------------------------------------------------
-; Change the Editor
-; If your editor's command-line usage is something like the following,
-; this script can be used to set it as the default editor for ahk files:
-;
-;   Editor.exe "Full path of script.ahk"
-;
-; When you run the script, it will prompt you to select the executable
-; file of your editor.
-
-;  Choose the default editor for *.ahk
-;-------------------------------------------------------------
-^+!0::
-FileSelectFile Editor, 2,, Select your editor, Programs (*.exe)
-if ErrorLevel
-    ExitApp
-RegWrite REG_SZ, HKCR, AutoHotkeyScript\Shell\Edit\Command,, "%Editor%" "`%1"
-return
-
-; Run as Admin
-/* full_command_line := DllCall("GetCommandLine", "str")
-if not (A_IsAdmin or RegExMatch(full_command_line, " /restart(?!\S)"))
-{
-    try
-    {
-        if A_IsCompiled
-            Run *RunAs "%A_ScriptFullPath%" /restart
-        else
-            Run *RunAs "%A_AhkPath%" /restart "%A_ScriptFullPath%"
-    }
-    ExitApp
-}
-; */
-
-;------------------------------------------------------------
-; Clear the Clipboard and Recycle bin
-;------------------------------------------------------------
-^!.::
-clipboard =
-FileRecycleEmpty
-Return
-
-;-----------------------------------------------------------
-; Map the right alt as win
-RAlt::RWin
-
-;-----------------------------------------------------------------------------------------
-; Disable the shift key-combo of half-angle and whole-angle
-<+space::
-
-;------------------------------------------------------------------------------------------
-; switch of VPN on demand
-^!9:: run D:\Program Files (x86)\vpnup.bat
-^!0:: run D:\Program Files (x86)\vpndown.bat
-
-;-----------------------------------------------------------------------------------------------------
-; Quick edit
-;^+!e::
-;Edit
-;return
-
-;^+!r::
-;Reload
-;return
-
-;------------------------------------------------------------------------
-; Connect VPN
-;------------------------------------------------------------------------
-^+!v::
-Send #d
-CoordMode, Mouse, Screen
-MouseClick, left,  1761,  1064
-Sleep, 100
-MouseClick, left,  1761,  1064
-;SendEvent {click 1760,1065,0}
-Sleep, 1000
-;MouseClick, left,  1729,  675
-CoordMode, Mouse, Relative
-SendEvent {click 170,210}
-Sleep, 1000
-SendEvent {click 536,310}
-SendEvent {click 550,429}
-SendEvent {click 535,434}
-Sleep 10000
-Send !{F4}
-Return
-; Disconnect  VPN
-^+!d::
-Send #d
-CoordMode, Mouse, Screen
-MouseClick, left,  1761,  1064
-Sleep, 100
-MouseClick, left,  1761,  1064
-;SendEvent {click 1760,1065,0}
-Sleep, 1000
-;MouseClick, left,  1729,  675
-CoordMode, Mouse, Relative
-SendEvent {click 170,210}
-Sleep, 1000
-SendEvent {click 536,310}
-SendEvent {click 550,429}
-SendEvent {click 730,430}
-Sleep 100
-Send !{F4}
-Return
