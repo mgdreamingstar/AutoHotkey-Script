@@ -6,6 +6,7 @@
 
 #SingleInstance ignore	;决定当脚本已经运行时是否允许它再次运行。
 #Hotstring EndChars  `n				;编辑热字串的终止符
+Menu, Tray, Icon, %A_LineFile%\..\Icon\keyboard_128px.ico, , 1
 
 ;Unicode发送函数,避免触发输入法,也不受全角影响
 	;from [辅助Send 发送ASCII字符 V1.7.2](http://ahk8.com/thread-5385.html)

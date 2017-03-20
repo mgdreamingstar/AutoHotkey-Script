@@ -27,6 +27,7 @@
 	;#Include %A_LineFile%\..\..\Functions\url_encode_decode.ahk	;该脚本必须以ANSI运行
 	#Include %A_LineFile%\..\..\Functions\TrayIcon by FanaticGuru.ahk
 	#Include %A_LineFile%\..\..\Functions\WinHttpRequest 网络函数 HTTP get post\WinHttpRequest.ahk
+	#Include %A_LineFile%\..\..\Functions\GetActiveBrowserURL 获取浏览器窗口的地址 等信息\GetActiveBrowserURL.ahk
 
 	#InstallKeybdHook		;安装键盘和鼠标钩子 像Input和A_PriorKey，都需要钩子
 	#InstallMouseHook
@@ -712,7 +713,7 @@
 	If ( !(A_PtrSize = 4 && A_IsUnicode ) ) {
 		U64 := AhkDir . "\AutoHotkeyU32.exe"
 		If (FileExist(U64)) {
-			Run %U64% %A_LineFile%
+			Run %U64% "%A_LineFile%"
 			ExitApp
 		} Else {
 			MsgBox 0x2010, AutoGUI, AutoHotkey 64-bit Unicode not found.
@@ -783,10 +784,10 @@
 		!#c::Run, "C:\Windows\System32\cmd.exe"
 		;注意主profile不要加--no-remote，否则evernote等打开链接时，会报错「已经运行，没有响应」云云。这里不必装安装版
 		#f::Run "d:\TechnicalSupport\ProgramFiles\Firefox-pcxFirefox\firefox\firefox.exe"
-		!#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\UseFirefox\firefox\firefox.exe" --no-remote
-		#d::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\DevFirefox\pcxfirefox\firefox.exe" --no-remote
+		;!#f::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\UseFirefox\firefox\firefox.exe" --no-remote
+		;#d::Run "D:\TechnicalSupport\ProgramFiles\GreenpcxFirefox\DevFirefox\pcxfirefox\firefox.exe" --no-remote
 		;#g::Run "d:\TechnicalSupport\ProgramFiles\GoogleChrome 便携版\MyChrome for Use\MyChrome.exe"
-		#g::Run "d:\TechnicalSupport\ProgramFiles\GoogleChrome 便携版\MyChrome for Use&Dev\MyChrome.exe"
+		#g::Run "D:\TechnicalSupport\ProgramFiles\CentBrowser\chrome.exe"
 		#n::Run notepad
 		#z::Run "d:\TechnicalSupport\ProgramFiles\AutoHotkey\SciTE\SciTE.exe"
 		;#z::Run "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\plugins\wlx\Syn2\Syn.exe" "d:\BaiduYun\@\Software\AHKScript\_MyScript\自定义快捷操作.ahk"
@@ -795,32 +796,35 @@
 		#e::Run "D:\TechnicalSupport\ProgramFiles\Evernote\Evernote\Evernote.exe
 		#y::Run "d:\TechnicalSupport\ProgramFiles\YodaoDict\YodaoDict.exe"
 		#m::Run resmon
-		^#c::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\ColorPic 4.1  屏幕取色小插件 颜色 色彩 配色\#ColorPic.exe"
-		^#s::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\#Fast Run\st.lnk"
+		;^#c::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\ColorPic 4.1  屏幕取色小插件 颜色 色彩 配色\#ColorPic.exe"
+		;^#s::Run, "d:\BaiduYun\Technical Backup\ProgramFiles\#Fast Run\st.lnk"
 		>!m::Run, "C:\Users\LL\AppData\Roaming\Spotify\Spotify.exe"
+		~LButton & F2::SendInput, ^+!#m
 		#s::
 			Run sx
 			Run pp
 			;Run ABBYY Screenshot Reader
 			return
 		;录制gif
-		#!s::
+		/*#!s::
 			Run "d:\BaiduYun\Technical Backup\ProgramFiles\keycastow 显示击键按键，录制屏幕时很有用\keycastow.exe"
 			Run "d:\BaiduYun\Technical Backup\ProgramFiles\#Repository\ScreenToGif 1.4.1 屏幕录制gif\$$ScreenToGif - Preview 11 屏幕录制gif.exe"
 			return
+			*/
 		#t::
 			if WinExist("ahk_class TTOTAL_CMD") {
 				WinClose
 			}
 			WinWaitClose, ahk_class TTOTAL_CMD, , 2
-			Run, tc
+			Sleep, 500
+			Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE"
 			WinWait, ahk_class TNASTYNAGSCREEN				;自动点123
 			WinGetText, Content, ahk_class TNASTYNAGSCREEN	;获取未注册提示窗口文本信息
 			StringMid, Num, Content, 10, 1					;获取随机数字
 			ControlSend,, %Num%, ahk_class TNASTYNAGSCREEN	;将随机数字发送到未注册提示窗口
 			WinActivate, ahk_class TTOTAL_CMD
 			return
-		Numpad0 & q::Run "shell:::{ED7BA470-8E54-465E-825C-99712043E01C}"
+		;Numpad0 & q::Run "shell:::{ED7BA470-8E54-465E-825C-99712043E01C}"
 	}
 
 	;快捷输入
@@ -879,9 +883,21 @@
 	
 	;简单映射型 快捷键
 	{
-		~LButton & s::Suspend
 		~LButton & r::Reload
-		~LButton & p::Pause
+		~LButton & s::			;禁用脚本
+			Suspend, On			;注意suspend必须在第一行 否则当suspend状态下，这个开关键，本身也会被禁用
+			TrayTip, 提示, 已 [禁用] 脚本, , 1
+			Sleep, 1000
+			TrayTip
+			Pause, On
+			return
+		~LButton & a::
+			Suspend, Off
+			TrayTip, 提示, 已 [启用] 脚本, , 1
+			Sleep, 1000
+			TrayTip
+			Pause, Off
+			return
 		
 		;Ditto自动分组(快捷输入)
 		!Space::^!+l
@@ -931,7 +947,7 @@
 			Sleep, 500
 			MouseClick, left
 			TrayIcon_Button("cow-taskbar.exe", "R")
-			Sleep, 500
+			Sleep, 1000
 			MouseMove, 20, 40,, R
 			MouseClick, left
 			MouseMove, xpos, ypos					;恢复鼠标位置
@@ -968,23 +984,6 @@
 				Send, !{F4}
 			return
 
-		;配合snagit，单击prtsc截屏；双击prtsc5秒延迟截屏
-		{
-			$PrintScreen::
-				CountStp := ++CountStp
-				SetTimer, TimerPrtSc, 500
-				Return
-			TimerPrtSc:
-				if CountStp > 1 ;大于1时关闭计时器
-					SetTimer, TimerPrtSc, Off
-				if CountStp = 1 ;只按一次时执行
-					Send, {PrintScreen}
-				if CountStp = 2 ;按两次时...
-					Send, ^+!{PrintScreen}
-				CountStp := 0 ;最后把记录的变量设置为0,于下次记录.
-				Return
-		}
-
 		;恢复Tab键原本功能
 		{
 			$Tab::Send, {Tab}
@@ -1010,8 +1009,8 @@
 		Numpad0 & a::SendInput, ^!n
 		$F4::
 			SendInput, {F4}
-			Sleep, 200
-			SendInput, {U+006E}{U+006F}{U+0074}{U+0065}{U+0062}{U+006F}{U+006F}{U+006B}{U+003A}{U+0022}{U+0031}{U+0020}{U+0020}{U+0043}{U+0061}{U+0062}{U+0069}{U+006E}{U+0065}{U+0074}{U+0022}{U+0020}
+			WinWaitActive, ahk_class ENMainFrame, , 2
+			sendL("notebook:""1  Cabinet"" ")		;注意字符中的双引号要转义，不是\"，而是两个引号""
 			return
 	}
 }
@@ -1023,6 +1022,7 @@
 {
 	;快捷键: 非编辑器部分
 	{
+		
 		;en的搜索不支持特殊字符，特快捷输入这些国际字母，以变相支持特殊字符
 		` & 1::SendInput, {U+0069}{U+006E}{U+0074}{U+0069}{U+0074}{U+006C}{U+0065}{U+003A}		;输入intitle:，为了避免输入法影响，用unicode输入
 		` & 2::SendInput, Δ{Space}
@@ -1038,7 +1038,7 @@
 		+`::SendInput, ~{Shift}
 		~^`::SendInput, ^`
 		
-		;F1::SendInput, !oSS{Enter}		;简化格式
+		^Space::controlsend, , ^{Space}, A   	;简化格式
 		F1::Menu, LangRenMenu, Show
 		F3::SendInput, ^!t				;批量打标签
 		Numpad0 & r::SendInput !vpb		;显示回收站
@@ -1072,119 +1072,110 @@
 		
 		;双击右键，高亮，和Firefox习惯一样
 		{
-			;在Up时判断：和上次Up间隔短则高亮；否则，和上次Down间隔短则弹出右键；都不是说明是鼠标手势则忽略
-			UpStartTime := A_TickCount	;初始化
-			RButton::			;在按下时触发
-				DownStartTime := A_TickCount
-				return
-				 
-			$RButton up::		;在弹起时触发
-				DownTime := A_TickCount - DownStartTime
-				UpTime := A_TickCount - UpStartTime
-				UpStartTime := A_TickCount
-				if (UpTime < 1000 && UpTime > 100)
-				{
-					SendInput, ^+h		;高亮
-				} 
-				else if (DownTime < 300)
-				{
-					backup := clipboard
-					clipboard = 
-					Send, ^c
-					clipboard = %clipboard%
-					Sleep, 50
-					if (clipboard = "") {
-						SendInput, {RButton Down}{RButton Up}
-					}
-					clipboard := backup
-				}
-				return
+			$RButton::
+				CountStp := ++CountStp
+				SetTimer, TimerPrtSc, 500
+				Return
+			TimerPrtSc:
+				if CountStp > 1 ;大于1时关闭计时器
+					SetTimer, TimerPrtSc, Off
+				if CountStp = 1 ;只按一次时执行
+					SendInput, {RButton}
+				if CountStp = 2 ;按两次时...
+					SendInput, ^+h
+				CountStp := 0 ;最后把记录的变量设置为0,于下次记录.
+				Return
 		}
 	}
 	
-	;方框环绕
-	!f::evernoteEdit("<div style='margin-top: 5px; margin-bottom: 9px; word-wrap: break-word; padding: 8.5px; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: rgb(245, 245, 245); border: 1px solid rgba(0, 0, 0, 0.148438)'>", "</div></br>")
-	;超级标题
-	!s::evernoteEditText("<div style='margin:1px 0px; color:rgb(255, 255, 255); background-color:#8BAAD0; border-top-left-radius:5px; border-top-right-radius:5px; border-bottom-right-radius:5px; border-bottom-left-radius:5px; text-align:center;'><b>", "</b></div></br>")
-	;贯穿线
-	^+=::
-		evernoteInsertHTML("<div style='margin: 3px 0px; border-top-width: 2px; border-top-style: solid; border-top-color: rgb(116, 98, 67); font-size: 3px'>　</div><span style='font-size: 12px'>&nbsp;</span>")
-		SendInput, {Left}
-		return
-	;底色标题
-	;!t::evernoteEditText("<div><div style='padding:0px 5px; margin:3px 0px; display:inline-block; color:rgb(255, 255, 255); text-align:center; border-top-left-radius:5px; border-top-right-radius:5px; border-bottom-right-radius:5px; border-bottom-left-radius:5px; background-color:#E2A55C;'>", "<br/></div><br/></div><br/>")
-	;引用
-	!y::evernoteEdit("<div style='margin:0.8em 0px; line-height:1.5em; border-left-width:5px; border-left-style:solid; border-left-color:rgb(127, 192, 66); padding-left:1.5em; '>", "</div>")
-	/* 需要其它样式，在这里增加 
-	*/	
-	
-	;字体白色（选中可见）
-	Numpad0 & w::evernoteEditText("反白可见【<span style='color: white;'>", "</span>】")
-	
-	;v6版本，鼠标点击方式，实现修改文字颜色
-	evernoteMouseChangeColor(r, g, b) {
-		CoordMode, Mouse, Screen	;鼠标坐标，临时采用全屏幕模式，否则鼠标不能回归原位
-		MouseGetPos, xpos, ypos 
-		CoordMode, Mouse, Client	;鼠标坐标，返回Client模式
-		IfWinActive, ahk_class ENMainFrame 
-		{
-			Click 890, 159		;点击颜色按钮
-			Click 935, 341		;点击更多颜色
-			;严重依赖窗口视图相对位置，编辑区域中界限，设定为表格刚刚消失不见时的位置，接近于屏幕竖直中线
+	;颜色 字体格式等
+	{
+		;方框环绕
+		!f::evernoteEdit("<div style='margin-top: 5px; margin-bottom: 9px; word-wrap: break-word; padding: 8.5px; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: rgb(245, 245, 245); border: 1px solid rgba(0, 0, 0, 0.148438)'>", "</div></br>")
+		;超级标题
+		!s::evernoteEditText("<div style='margin:1px 0px; color:rgb(255, 255, 255); background-color:#8BAAD0; border-top-left-radius:5px; border-top-right-radius:5px; border-bottom-right-radius:5px; border-bottom-left-radius:5px; text-align:center;'><b>", "</b></div></br>")
+		;贯穿线
+		^+=::
+			evernoteInsertHTML("<div style='margin: 3px 0px; border-top-width: 2px; border-top-style: solid; border-top-color: rgb(116, 98, 67); font-size: 3px'>　</div><span style='font-size: 12px'>&nbsp;</span>")
+			SendInput, {Left}
+			return
+		;底色标题
+		;!t::evernoteEditText("<div><div style='padding:0px 5px; margin:3px 0px; display:inline-block; color:rgb(255, 255, 255); text-align:center; border-top-left-radius:5px; border-top-right-radius:5px; border-bottom-right-radius:5px; border-bottom-left-radius:5px; background-color:#E2A55C;'>", "<br/></div><br/></div><br/>")
+		;引用
+		!y::evernoteEdit("<div style='margin:0.8em 0px; line-height:1.5em; border-left-width:5px; border-left-style:solid; border-left-color:rgb(127, 192, 66); padding-left:1.5em; '>", "</div>")
+		/* 需要其它样式，在这里增加 
+		*/	
+		
+		;字体白色（选中可见）
+		Numpad0 & w::evernoteEditText("反白可见【<span style='color: white;'>", "</span>】")
+		
+		;v6版本，鼠标点击方式，实现修改文字颜色
+		evernoteMouseChangeColor(r, g, b) {
+			CoordMode, Mouse, Screen	;鼠标坐标，临时采用全屏幕模式，否则鼠标不能回归原位
+			MouseGetPos, xpos, ypos 
+			CoordMode, Mouse, Client	;鼠标坐标，返回Client模式
+			IfWinActive, ahk_class ENMainFrame 
+			{
+				Click 890, 159		;点击颜色按钮
+				Click 935, 341		;点击更多颜色
+				;严重依赖窗口视图相对位置，编辑区域中界限，设定为表格刚刚消失不见时的位置，接近于屏幕竖直中线
+			}
+			IfWinActive, ahk_class ENSingleNoteView
+			{
+				Click 231, 121		;点击颜色按钮
+				Click 262, 304		;点击更多颜色
+			}
+			;SendL("M")			;进入更多颜色		
+			Sleep, 50
+			Click, 116, 333		;进入自定义颜色
+			SendInput, {Tab}{Tab}{Tab}
+			SendInput %r%{Tab}%g%{Tab}%b%{Tab}{Space}
+			Click, 21, 259		;点击设定好自定义颜色
+			SendInput, {Tab}{Space}
+			CoordMode, Mouse, Screen	;鼠标坐标，继续改回全屏幕模式，方便移动鼠标
+			MouseMove, %xpos%, %ypos%, 0
+			CoordMode, Mouse, Client	;鼠标坐标，继续返回Client模式
+			return
 		}
-		IfWinActive, ahk_class ENSingleNoteView
+		
 		{
-			Click 231, 121		;点击颜色按钮
-			Click 262, 304		;点击更多颜色
+			;字体红色
+			#1::
+				evernoteMouseChangeColor(240, 46, 55)
+				SendInput, ^b
+				return
+			;字体蓝色
+			#2::
+				evernoteMouseChangeColor(55, 64, 230)
+				SendInput, ^b
+				return
+			;字体灰色
+			#3::
+				evernoteMouseChangeColor(214, 214, 214)
+				return
+			;字体绿色
+			#4::
+				evernoteMouseChangeColor(15, 130, 15)
+				SendInput, ^b
+				return
+			;字体白色
+			#5::
+				evernoteMouseChangeColor(255, 255, 255)
+				return
+		
+			;周计划专用配色
+			;字体橙色
+			#F1::evernoteMouseChangeColor(233, 125, 35)
+			;字体绿色
+			#F2::evernoteMouseChangeColor(55, 64, 230)
+			;字体蓝色
+			#F3::evernoteMouseChangeColor(91, 133, 170)
+			;字体土黄色
+			#F4::evernoteMouseChangeColor(255, 188, 41)
+			;字体紫色
+			#F5::evernoteMouseChangeColor(194, 0, 251)
 		}
-		;SendL("M")			;进入更多颜色		
-		Sleep, 50
-		Click, 116, 333		;进入自定义颜色
-		SendInput, {Tab}{Tab}{Tab}
-		SendInput %r%{Tab}%g%{Tab}%b%{Tab}{Space}
-		Click, 21, 259		;点击设定好自定义颜色
-		SendInput, {Tab}{Space}
-		CoordMode, Mouse, Screen	;鼠标坐标，继续改回全屏幕模式，方便移动鼠标
-		MouseMove, %xpos%, %ypos%, 0
-		CoordMode, Mouse, Client	;鼠标坐标，继续返回Client模式
-		return
 	}
-	
-	;字体红色
-	#1::
-		evernoteMouseChangeColor(240, 46, 55)
-		SendInput, ^b
-		return
-	;字体蓝色
-	#2::
-		evernoteMouseChangeColor(55, 64, 230)
-		SendInput, ^b
-		return
-	;字体灰色
-	#3::
-		evernoteMouseChangeColor(214, 214, 214)
-		return
-	;字体绿色
-	#4::
-		evernoteMouseChangeColor(15, 130, 15)
-		SendInput, ^b
-		return
-	;字体白色
-	#5::
-		evernoteMouseChangeColor(255, 255, 255)
-		return
-	
-	;周计划专用配色
-	;字体橙色
-	#F1::evernoteMouseChangeColor(233, 125, 35)
-	;字体绿色
-	#F2::evernoteMouseChangeColor(55, 64, 230)
-	;字体蓝色
-	#F3::evernoteMouseChangeColor(91, 133, 170)
-	;字体土黄色
-	#F4::evernoteMouseChangeColor(255, 188, 41)
-	;字体紫色
-	#F5::evernoteMouseChangeColor(194, 0, 251)
 	
 	;每日Todo的连续操作
 	Tab & r::
@@ -1236,7 +1227,7 @@
 	}
 	
 	;tc中打开同路径目录
-	^Up::
+	^t::
 	{
 		clipboard =
 		clipboard := ActiveFolderPath("")
@@ -1246,13 +1237,14 @@
 	}
 	
 	;tc中打开沙盘中的同路径
-	^Down::
+	^s::
 	{
 		clipboard =
 		clipboard := ActiveFolderPath("")
 		ClipWait, 1
 		StringReplace, clipboard, clipboard, :
-		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /L="d:\TechnicalSupport\Sandbox\LiLong\UnstableSoftware\drive\%Clipboard%"
+		Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /L="d:\TechnicalSupport\Sandbox\LL"
+		;Run, "d:\TechnicalSupport\ProgramFiles\Total Commander 8.51a\TOTALCMD.EXE" /O /T /L="d:\TechnicalSupport\Sandbox\LiLong\UnstableSoftware\drive\%Clipboard%"
 		return
 	}
 }
@@ -1343,6 +1335,18 @@
 		Return
 	}
 	*/
+	
+	;删除到垃圾桶
+	delete::
+		SendInput, {AppsKey}
+		Sleep, 50
+		SendInput, {Up}{Up}{Up}{Up}{Up}{Enter}	;选择移动
+		sendL("垃圾桶")
+		SendInput, {Down}{Down}{Enter}	;移动到对应文件夹
+		return
+	
+	;覆盖搜狗输入法的全局快捷键干扰
+	^+z::ControlSend,, ^+z, A
 }
 
 ;-------------------------------------------------------------------------------
@@ -1363,14 +1367,14 @@
 	`::Send, ^w
 
 	;在win7自带资源管理器中打开同路径
-	^Up::
+	^e::
 		Send, ^1
 		Sleep, 50
 		Run, %Clipboard%
 		return
 	
 	;在对侧窗口打开沙盘中同路径
-	^Down::
+	^s::
 		Send, ^1
 		Sleep, 50
 		StringReplace, clipboard, clipboard, :
@@ -1490,34 +1494,64 @@
 ;-------------------------------------------------------------------------------
 #IfWinActive ahk_class MozillaWindowClass
 {
-	F1::Send, ^+{Tab}	;切换到前一标签
-	F2::Send, ^{Tab}	;切换到后一标签
-	F3::
-		Send, ^!b		;配合diigo的侧边栏
-		Sleep, 400
-		CoordMode, mouse, Client
-		ControlClick, x160 y170, A  			;Click, 152, 170 但不移动鼠标
-		return
-	
-	;用AutoHotkey绑定`和关闭标签，容易写代码时误关闭，改为用ff脚本KeyChanger做。
-	;但KeyChanger在空白tab和Google上又自动进入输入焦点，还是回到ahk。判断下当前是否输入状态吧
-	$`::
-		if not IME_GET()
-			Send, ^w		;关闭当前标签
-		Else
-			SendInput, ``
-		return
-	~^`::Send, ^`		;恢复Ditto本来功能
-	!`::Send, ``		;恢复本来的`功能
-	^b::Send, ^t^v{Enter}		;快捷打开复制的网址
-	
-	` & 1::
-		sendL("console.log();")
-		SendInput, {Left}{Left}
-		return
+	;-------------------------------------------------------------------------------
+	;~ 加快操作的快捷键
+	;-------------------------------------------------------------------------------
+	{
+		F1::Send, ^+{Tab}	;切换到前一标签
+		F2::Send, ^{Tab}	;切换到后一标签
 		
-	;某些网页，单击win造成的双击ctrl，会触发js，导致win+a印象笔记摘录失效，所以这里屏蔽一下，改成单击ctrl
-	~LWin:: SendInput, {LControl}
+		;Diigo快捷键
+		F3::
+		{
+			Send, ^!b		;配合diigo的侧边栏
+			Sleep, 1000
+			文字=
+			文字=%文字%|<  >
+			(
+			0000_____00__00____________________000___00______00_________00_______
+			000000___00__00___________________00000__00______00_________00_______
+			00__000__00__00___0000___000______00_____00___00_00___000___00000____
+			00___00__00__00__00000__00000_____00_____00__000000__00000__000000__0
+			00___00__00__00_00__00__00__00____0000___00__00__00__00__00_00__00___
+			00___00__00__00__00000_000__00______000__00_000__00_0000000_00__00__0
+			00___00__00__00__0000___00__00_______00__00__00__00__00_____00__00_00
+			0000000__00__00__0000___000000___000000__00__000000__00__0__000000_00
+			00000____00__00__00000___0000_____0000___00__000000___0000__00000___0
+			________________00___00______________________________________________
+			________________000_00_______________________________________________
+			_________________0000________________________________________________
+			)
+
+			if 查找文字(41,85,文字,"*137",150000,150000,X,Y,OCR,0,0)
+			{
+				CoordMode, mouse, Client
+				ControlClick, x170 y168, A  			;Click, 152, 170 但不移动鼠标
+				SendInput, +{Home}{BackSpace}
+			}
+			return
+		}
+		
+		;用AutoHotkey绑定`和关闭标签，容易写代码时误关闭，改为用ff脚本KeyChanger做。
+		;但KeyChanger在空白tab和Google上又自动进入输入焦点，还是回到ahk。判断下当前是否输入状态吧
+		$`::
+			if not IME_GET()
+				Send, ^w		;关闭当前标签
+			Else
+				SendInput, ``
+			return
+		~^`::Send, ^`		;恢复Ditto本来功能
+		!`::Send, ``		;恢复本来的`功能
+		^b::Send, ^t^v{Enter}		;快捷打开复制的网址
+		
+		` & 1::
+			sendL("console.log();")
+			SendInput, {Left}{Left}
+			return
+			
+		;某些网页，单击win造成的双击ctrl，会触发js，导致win+a印象笔记摘录失效，所以这里屏蔽一下，改成单击ctrl
+		~LWin:: SendInput, {LControl}
+	}
 	
 	;-------------------------------------------------------------------------------
 	;~ 打开一些网址的快捷键
@@ -1568,6 +1602,7 @@
 			return
 	}
 	
+	
 	;还没想好怎么做
 	;自动判断是否选中文本，否的话，替换复制为全选+复制
 	;^c::
@@ -1580,27 +1615,44 @@
 	;~LButton & q::MsgBox % MemUsage("firefox.exe", "M")
 	
 	;-------------------------------------------------------------------------------
-	;~ 网易云音乐 快捷键  (因为用了#if，必须放在最后)
+	;~ 基于网址的自定义
 	;-------------------------------------------------------------------------------
-	/*		
-	;把方向键作修饰符的话，副作用较多，例如长按Left、按住shift再按Left……都要另处理，麻烦
-	Left & Right:: 
-	Right & Left:: SendInput, ^+{Left}
-	$Left::SendInput {Left}
-	$Right::SendInput {Right}
+	{
+		;-------------------------------------------------------------------------------
+		;~ Inoreader网站
+		;-------------------------------------------------------------------------------
+		{
+			iURL := GetActiveBrowserURL()
+			if ( RegExMatch(iURL, "^https?://www.inoreader.com.*") != 0)
+			{
+				;g & RButton:: SendInput, o
+			}
+		}
+		
+		;-------------------------------------------------------------------------------
+		;~ 网易云音乐 快捷键  (因为用了#if，必须放在最后)
+		;-------------------------------------------------------------------------------
+		/*		
+		;把方向键作修饰符的话，副作用较多，例如长按Left、按住shift再按Left……都要另处理，麻烦
+		Left & Right:: 
+		Right & Left:: SendInput, ^+{Left}
+		$Left::SendInput {Left}
+		$Right::SendInput {Right}
+		
+		;用AuhoHotkey论坛其他人的建议，用Input，也没试验成功
+		~Left::
+			Input, UserInput, V T3 L1, , {Right}
+			if ErrorLevel = Match
+				SendInput, ^+{Right}
+			return
+		;至于通过if，定义快捷键上下文，也不可行，必须用#if
+		if ( a_priorkey = "left" && A_TimeSincePriorHotkey < 1000) 
+			Right:: SendInput, ^+{right}
+		if ( a_priorkey = "right" && A_TimeSincePriorHotkey < 1000) 
+			Left:: SendInput, ^+{left}
+		*/
+	}
 	
-	;用AuhoHotkey论坛其他人的建议，用Input，也没试验成功
-	~Left::
-		Input, UserInput, V T3 L1, , {Right}
-		if ErrorLevel = Match
-			SendInput, ^+{Right}
-		return
-	;至于通过if，定义快捷键上下文，也不可行，必须用#if
-	if ( a_priorkey = "left" && A_TimeSincePriorHotkey < 1000) 
-		Right:: SendInput, ^+{right}
-	if ( a_priorkey = "right" && A_TimeSincePriorHotkey < 1000) 
-		Left:: SendInput, ^+{left}
-	*/
 	
 }
 
@@ -1823,12 +1875,11 @@
 			IfMsgBox Cancel, {
 				return
 			} Else IfMsgBox OK, {
-				Run d:\BaiduYun\@\Software\AHKScript\Functions\nircmd-x64\nircmd.exe mutesysvolume 1
+				Run, %A_LineFile%\..\..\Functions\nircmd-x64\nircmd.exe mutesysvolume 1
 				;用外部程序来执行静音，避免{Volume_Mute}和搜狗输入法的冲突，参见：http://ahk8.com/thread-2650.html
 				Run, "D:\TechnicalSupport\ProgramFiles.Untrust\Thunder Network\Thunder\Program\Thunder.exe"
-				Run, "C:\Users\LL\AppData\Roaming\baidu\BaiduYun\baiduyun.exe"
 				Run, "C:\Users\LL\AppData\Roaming\Resilio Sync\Resilio Sync.exe"
-				Run, "D:\BaiduYun\Technical Backup\ProgramFiles.Trust\Shutdown8  定时关机\Shutdown8 关机.exe"
+				Run, "D:\Dropbox\Technical Backup\ProgramFiles.Trust\Shutdown8  定时关机\Shutdown8 关机.exe"
 			}
 		}
 		return
@@ -3368,6 +3419,22 @@ _____________00__0000____0_____0___0__0_______00__________0_____00___00
 #IfWinActive ahk_exe plugin-container.exe
 {
 	Space:: SendInput, {LButton}
+}
+
+;-------------------------------------------------------------------------------
+;~ 疯石
+;-------------------------------------------------------------------------------
+#IfWinActive ahk_exe CrazyStoneDeepLearning.exe
+{
+	F1::
+		WinMove, A, , 665, 0
+		WinSet, AlwaysOnTop, Toggle, A
+		return
+	1::ControlClick, X700 Y210, A
+	2::ControlClick, X663 Y174, A
+	3::ControlClick, X720 Y253, A
+	
+	
 }
 
 ;关闭上下文相关性，以下命令，全部针对全局

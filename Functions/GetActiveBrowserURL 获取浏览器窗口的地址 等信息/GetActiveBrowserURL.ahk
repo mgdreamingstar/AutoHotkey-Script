@@ -6,11 +6,12 @@
 ; Short description:  Gets the URL of the current (active) browser tab for most modern browsers
 ; Last Mod:           2016-05-19
 
-Menu, Tray, Icon, % A_WinDir "\system32\netshell.dll", 86 ; Shows a world icon in the system tray
+;Menu, Tray, Icon, % A_WinDir "\system32\netshell.dll", 86 ; Shows a world icon in the system tray
 
 ModernBrowsers := "ApplicationFrameWindow,Chrome_WidgetWin_0,Chrome_WidgetWin_1,Maxthon3Cls_MainFrm,MozillaWindowClass,Slimjet_WidgetWin_1"
 LegacyBrowsers := "IEFrame,OperaWindowClass"
 
+/*
 ^+!u::
 	nTime := A_TickCount
 	sURL := GetActiveBrowserURL()
@@ -22,6 +23,7 @@ LegacyBrowsers := "IEFrame,OperaWindowClass"
 	Else
 		MsgBox, % "Not a browser or browser not supported (" sClass ")"
 Return
+*/
 
 GetActiveBrowserURL() {
 	global ModernBrowsers, LegacyBrowsers
