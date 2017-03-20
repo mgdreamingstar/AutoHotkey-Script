@@ -3,6 +3,8 @@
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
+^!/:: run, C:\Users\mozli\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
+
 ^+!v::
 {
     Send #d
@@ -73,7 +75,7 @@ RAlt::RWin
 ; switch of VPN on demand
 ^!9:: run D:\Program Files (x86)\vpnup.bat
 ^!0:: run D:\Program Files (x86)\vpndown.bat
-  
+
 
 
 ;-------------------------------------------------------------
