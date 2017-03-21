@@ -467,7 +467,7 @@
 		+`::SendInput, ~{Shift}
 		~^`::SendInput, ^`
 
-		^Space::controlsend, , ^{Space}, A   	;简化格式
+		Tab & Space::controlsend, , ^{Space}, A   	;简化格式
 		F1::Menu, LangRenMenu, Show
 		F3::SendInput, ^!t				;批量打标签
 		CapsLock & r::SendInput !vpb		;显示回收站
