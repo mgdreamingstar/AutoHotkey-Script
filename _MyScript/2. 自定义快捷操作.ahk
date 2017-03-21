@@ -74,57 +74,8 @@
 	  ListLines, On
 	}
 
-
-	;判断当前是否为输入状态，比A_CaretX可靠性更好
-	IME_GET(WinTitle="A")  {
-		ControlGet,hwnd,HWND,,,%WinTitle%
-		if  (WinActive(WinTitle))   {
-			ptrSize := !A_PtrSize ? 4 : A_PtrSize
-			VarSetCapacity(stGTI, cbSize:=4+4+(PtrSize*6)+16, 0)
-			NumPut(cbSize, stGTI,  0, "UInt")   ;   DWORD   cbSize;
-			hwnd := DllCall("GetGUIThreadInfo", Uint,0, Uint,&stGTI)
-					 ? NumGet(stGTI,8+PtrSize,"UInt") : hwnd
-		}
-		return DllCall("SendMessage"
-			, UInt, DllCall("imm32\ImmGetDefaultIMEWnd", Uint,hwnd)
-			, UInt, 0x0283  ;Message : WM_IME_CONTROL
-			,  Int, 0x0005  ;wParam  : IMC_GETOPENSTATUS
-			,  Int, 0)      ;lParam  : 0
 }
 
-	;打开超链接
-	openLink(before, after) {
-		clipboard =
-		Send, ^c
-		ClipWait, 1  ; 等待剪贴板中出现文本.
-		backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
-		clipboard = %before%%clipboard%%after%
-		/*WinActivate, ahk_class MozillaWindowClass
-		SendInput, ^t
-		Sleep, 1
-		SendInput, ^v{Enter}
-		*/
-		Run, %clipboard%
-		Sleep, 500	;这里必须加个延迟，否则下一行太快执行
-		clipboard = %backup%
-		return
-	}
-
-	;打开伪链接
-	openFakeLink(before, after) {
-		clipboard =
-		Send, ^c
-		ClipWait, 1  ; 等待剪贴板中出现文本.
-		backup := clipboard	; 注意变量的两种赋值方法，或者加冒号不加百分号。或者如下面所示，加百分号不加冒号
-		clipboard = %before%%clipboard%%after%
-		WinActivate, ahk_class MozillaWindowClass
-		SendInput, ^t
-		Sleep, 1
-		SendInput, ^v{Enter}
-		Sleep, 500	;这里必须加个延迟，否则下一行太快执行
-		clipboard = %backup%
-		return
-	}
 
 	;Unicode发送函数,避免触发输入法,也不受全角影响
 	;from [辅助Send 发送ASCII字符 V1.7.2](http://ahk8.com/thread-5385.html)
@@ -213,24 +164,6 @@
 	;Returns the path of the specified Explorer window, or the path of the active Explorer window if
 	;a title is not specified. Works with Explorer windows, desktop and some open/save dialogues.
 	;Returns empty path if no path is retrieved.
-	ActiveFolderPath(WinTitle="A")
-	{
-		WinGetClass Class, %WinTitle%
-		If (Class ~= "Progman|WorkerW") ;desktop
-			WinPath := A_Desktop
-		;Else If (Class ~= "(Cabinet|Explore)WClass") ;all other Explorer windows
-		Else ;all other windows
-		{
-			WinGetText, WinPath, A
-			RegExMatch(WinPath, "地址:.*", WinPath)
-			WinPath := RegExReplace(WinPath, "地址: ") ;remove "Address: " part
-		}
-
-		WinPath := RegExReplace(WinPath, "\\+$") ;remove single or double  trailing backslash
-		If WinPath ;if path not empty, append single backslash
-			WinPath .= "\"
-		Return WinPath
-	}
 
 }
 
@@ -238,58 +171,9 @@
 ;~ 全局程序: 注意全局程序，必须写在#IfWinActive *前面* ，函数后面， 才能正确执行！
 ;-------------------------------------------------------------------------------
 {
-	;-------------------------------------------------------------------------------
-	;~ 控制当前运行是Unicode64版,若不是则切换 (U64比U32运行更快，尽量用U64)
-	;-------------------------------------------------------------------------------
-	SplitPath A_AhkPath,, AhkDir
-	If ( !(A_PtrSize = 4 && A_IsUnicode ) ) {
-		U64 := AhkDir . "\AutoHotkeyU32.exe"
-		If (FileExist(U64)) {
-			Run %U64% "%A_LineFile%"
-			ExitApp
-		} Else {
-			MsgBox 0x2010, AutoGUI, AutoHotkey 64-bit Unicode not found.
-			ExitApp
-		}
-	}
 
-	;-------------------------------------------------------------------------------
-	;~ 自动结束 垃圾进程
-	;-------------------------------------------------------------------------------
-	trashProcess := ["DownloadSDKServer.exe", "SogouCloud.exe", "SpotifyWebHelper.exe"]			;目标进程名称 =
-	Loop {
-		For index, value in trashProcess {
-			Process, Exist, %value%				;查找进程是否存在
-			if ( ErrorLevel != 0 ) {
-				Process, Close, %ErrorLevel%		;终止进程
-				if ( ErrorLevel = 0 )
-					MsgBox, 检测到垃圾进程，但我没有成功的结束它！
-			}
-			Sleep, 10000
-		}
-	}
 
-	;-------------------------------------------------------------------------------
-	;~ 自动保存pdf等
-	;-------------------------------------------------------------------------------
-	窗口1上次保存时间:=A_TickCount-30*1000    ;使下面立即开始检测
 
-	SetTimer, 自动保存, 5000  ;5秒钟检测一次，刚好可检测5秒内有没有键盘和鼠标操作
-	Return
-
-	; 自动保存函数
-	自动保存:
-	当前时间:=A_TickCount
-	; 如果存在该窗口，且距离上次保存已有5min
-	if WinExist("ahk_exe Acrobat.exe") and (当前时间-窗口1上次保存时间>120*1000)
-	{
-		; 窗口没有激活；或激活了但距离上次用户操作已有5s
-		if !WinActive() or ( WinActive() and (A_TimeIdlePhysical>5000) )
-		{
-			ControlSend, ahk_parent, {Control Down}s{Control Up}, ahk_exe Acrobat.exe
-			窗口1上次保存时间:=当前时间
-		}
-	}
 }
 
 ;-------------------------------------------------------------------------------
@@ -419,10 +303,10 @@
 
 
 		;双击esc退出焦点程序
-		~Esc::
-			if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500)
-				Send, !{F4}
-			return
+		;~Esc::
+		;	if (A_ThisHotKey = A_PriorHotKey and A_TimeSincePriorHotkey < 500)
+		;		Send, !{F4}
+		;	return
 
 		;恢复Tab键原本功能,很重要：将tab作为fn一样的按键。因为键盘上确实没有多余的按键可以用作此用了。（Caps lock已经用于移动光标等其他了）
 		{
