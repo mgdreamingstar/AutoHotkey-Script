@@ -5,7 +5,7 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 ; Startup Folder
 ^!/:: run, C:\Users\mozli\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
-
+^!\:: run, D:\mozli\documents\github
 
 ^+!v::
 {
