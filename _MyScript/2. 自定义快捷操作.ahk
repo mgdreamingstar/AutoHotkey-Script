@@ -165,7 +165,7 @@
 	;a title is not specified. Works with Explorer windows, desktop and some open/save dialogues.
 	;Returns empty path if no path is retrieved.
 
-}
+
 
 ;-------------------------------------------------------------------------------
 ;~ 全局程序: 注意全局程序，必须写在#IfWinActive *前面* ，函数后面， 才能正确执行！
