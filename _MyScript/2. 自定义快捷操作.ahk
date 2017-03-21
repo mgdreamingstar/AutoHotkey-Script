@@ -1,6 +1,6 @@
 ﻿;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 声明：
-;;; 1、用KeyTweak改键盘映射，capslock改为Numpad0了，否则做快捷键总是激活大小写
+;;; 1、用KeyTweak改键盘映射，capslock改为CapsLock了，否则做快捷键总是激活大小写
 ;;; 切换，很烦
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -40,7 +40,7 @@
 
 	#Hotstring EndChars  `n				;编辑热字串的终止符
 
-	Menu, Tray, Icon, %A_LineFile%\..\Icon\自定义快捷操作.ico, , 1
+	;Menu, Tray, Icon, %A_LineFile%\..\Icon\自定义快捷操作.ico, , 1
 	Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	TrayTip, 提示, 脚本已启动, , 1
 	Sleep, 1000
@@ -126,6 +126,7 @@
 	;from [辅助Send 发送ASCII字符 V1.7.2](http://ahk8.com/thread-5385.html)
 	SendL(ByRef string) {
 		static Ord:=("Asc","Ord")
+		;MsgBox %Ord%
 		inputString:=("string",string)
 		Loop, Parse, %inputString%
 			ascString.=(_:=%Ord%(A_LoopField))<0x100?"{ASC " _ "}":A_LoopField
@@ -297,12 +298,13 @@
 ;-------------------------------------------------------------------------------
 ;~ 全局键位
 ;-------------------------------------------------------------------------------
-{
-	;临时
 
+	;临时
+		Tab & .:: SendL("「」")
+		Tab & ,:: SendL("『』")
 
 	;常用软件快速启动
-	{
+	
 
 
 	;快捷输入
@@ -319,14 +321,14 @@
 		Tab & 6:: Send, ⑥{Space}
 		Tab & 7:: Send, ⑦{Space}
 		Tab & 8:: Send, ⑧{Space}
-		Numpad0 & 1:: Send, ❶{Space}
-		Numpad0 & 2:: Send, ❷{Space}
-		Numpad0 & 3:: Send, ❸{Space}
-		Numpad0 & 4:: Send, ❹{Space}
-		Numpad0 & 5:: Send, ❺{Space}
-		Numpad0 & 6:: Send, ❻{Space}
-		Numpad0 & 7:: Send, ❼{Space}
-		Numpad0 & 8:: Send, ❽{Space}
+		CapsLock & 1:: Send, ❶{Space}
+		CapsLock & 2:: Send, ❷{Space}
+		CapsLock & 3:: Send, ❸{Space}
+		CapsLock & 4:: Send, ❹{Space}
+		CapsLock & 5:: Send, ❺{Space}
+		CapsLock & 6:: Send, ❻{Space}
+		CapsLock & 7:: Send, ❼{Space}
+		CapsLock & 8:: Send, ❽{Space}
 
 		;Tab & g:: Send, √{Space}
 		;多数时候，回车紧接句号，说明前面输入的是英文，那句号应该是英文的点，所以自动修改下
@@ -355,9 +357,8 @@
 			TrayTip
 			Pause, Off
 			return
-		~LButton & e::
-			Edit
-			return
+		~LButton & e::Edit
+			
 
 		;Ditto自动分组(快捷输入)
 		!Space::^!+l
@@ -371,7 +372,7 @@
 
 		;还有些字符也不可见且宽度0，但是由于被列入network.IDN.blacklist_chars，所以经常被过滤掉，例如 {U+115F}{U+1160}{U+200B}{U+1160}{U+115F}{U+2001}{U+2002}{U+2003}{U+2004}{U+2005}{U+2006}{U+2007}{U+2008}{U+2009}{U+200A}{U+200B}{U+2028}{U+2029}{U+202F}{U+205F}{U+3000}{U+3164}{U+FEFF}
 		;输入 不可见&宽度非0 的字符
-		Numpad0 & Space:: SendInput, {U+115A}{U+115B}{U+115C}{U+115D}{U+115E}{U+11A3}{U+11A4}{U+11A5}{U+11A6}{U+11A7}
+		CapsLock & Space:: SendInput, {U+115A}{U+115B}{U+115C}{U+115D}{U+115E}{U+11A3}{U+11A4}{U+11A5}{U+11A6}{U+11A7}
 		;输入 几乎不可见 的字符
 		Tab & p:: SendInput, {U+06E4}{U+115B}{U+115C}{U+115D}{U+115E}
 
@@ -381,22 +382,7 @@
 
 	;复杂型 快捷键
 	{
-		注册表-定位路径:
-			; 注册表的HKEY_CURRENT_USER/Software/Microsoft/Windows/CurrentVersion/Applets/Regedit
-			; 下的LastKey项保存了上一次浏览的注册表项位置，所以在打开注册表编辑器前修改它就行了
-			InputBox, NewLastKey, 注册表自动定位工具, 请输入要定位到的路径, , 800, 130
-			IfWinExist, 注册表编辑器 ahk_class RegEdit_RegEdit
-			{
-				WinClose
-				WinWaitClose
-			}
-			RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\Microsoft\Windows\CurrentVersion\Applets\Regedit, LastKey, %NewLastKey%
-			If(ErrorLevel = 1)
-				MsgBox failed
-			Run, regedit.exe
-			return
-
-
+		
 		!c::
 			MouseGetPos, xpos, ypos 				;记忆鼠标位置
 			TrayIcon_Button("cow-taskbar.exe", "R")
@@ -434,7 +420,7 @@
 				Send, !{F4}
 			return
 
-		;恢复Tab键原本功能
+		;恢复Tab键原本功能,很重要：将tab作为fn一样的按键。因为键盘上确实没有多余的按键可以用作此用了。（Caps lock已经用于移动光标等其他了）
 		{
 			$Tab::Send, {Tab}
 			LAlt & Tab::AltTab
@@ -445,7 +431,7 @@
 
 
 		;evernote新建笔记
-		Numpad0 & a::SendInput, ^!n
+		LButton & w::SendInput, ^!n
 		$F4::
 			SendInput, {F4}
 			WinWaitActive, ahk_class ENMainFrame, , 2
@@ -480,7 +466,7 @@
 		^Space::controlsend, , ^{Space}, A   	;简化格式
 		F1::Menu, LangRenMenu, Show
 		F3::SendInput, ^!t				;批量打标签
-		Numpad0 & r::SendInput !vpb		;显示回收站
+		CapsLock & r::SendInput !vpb		;显示回收站
 		~LButton & a::SendInput, ^!a	;切换账户
 
 		;复制到当前笔记本
@@ -546,7 +532,7 @@
 		*/
 
 		;字体白色（选中可见）
-		Numpad0 & w::evernoteEditText("反白可见【<span style='color: white;'>", "</span>】")
+		CapsLock & w::evernoteEditText("反白可见【<span style='color: white;'>", "</span>】")
 
 		;v6版本，鼠标点击方式，实现修改文字颜色
 		evernoteMouseChangeColor(r, g, b) {
