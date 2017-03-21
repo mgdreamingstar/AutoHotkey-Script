@@ -39,11 +39,15 @@
 	CountStp := 0	;一键多用的计时器
 
 	#Hotstring EndChars  `n				;编辑热字串的终止符
-
-	;Menu, Tray, Icon, %A_LineFile%\..\Icon\自定义快捷操作.ico, , 1
+	
+	;----------------------------------------------------------------------
+	;Win 10 regedit: HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer\EnableLegacyBalloonNotifications=1 
+	;need to create 'Explorer' and 'Enable...=1'
+	;----------------------------------------------------------------------
+	Menu, Tray, Icon, %A_LineFile%\..\Icon\自定义快捷操作.ico, , 1
 	Menu, tray, tip, 自定义快捷键、自动保存 by LL
 	TrayTip, 提示, 脚本已启动, , 1
-	Sleep, 1000
+	Sleep, 2000
 	TrayTip
 	;return		;注：这里不能加return  原因搜索帮助文件的「自动执行段」
 
@@ -302,7 +306,7 @@
 	;临时
 		Tab & .:: SendL("「」")
 		Tab & ,:: SendL("『』")
-
+		Tab & -:: SendL(";----------------------------------------------------------------------")
 	;常用软件快速启动
 	
 
@@ -346,14 +350,14 @@
 		~LButton & s::			;禁用脚本
 			Suspend, On			;注意suspend必须在第一行 否则当suspend状态下，这个开关键，本身也会被禁用
 			TrayTip, 提示, 已 [禁用] 脚本, , 1
-			Sleep, 1000
+			Sleep, 2000
 			TrayTip
 			Pause, On
 			return
 		~LButton & a::
 			Suspend, Off
 			TrayTip, 提示, 已 [启用] 脚本, , 1
-			Sleep, 1000
+			Sleep, 2000
 			TrayTip
 			Pause, Off
 			return
